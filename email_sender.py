@@ -29,12 +29,26 @@ def send_email(content, recipients):
     # 이메일 전송
     try:
         with smtplib.SMTP(smtp_server, smtp_port) as server:
-            server.starttls()
-            server.login(email_login, email_password)
-            server.send_message(msg)
-            print(f"Email sent successfully to {recipients}")
+            server.ehlo()  # SMTP 서버와 연결 시작
+            server.starttls()  # TLS 보안 시작
+            server.ehlo()  # TLS 후 다시 연결
+            server.login(email_login, email_password)  # 로그인
+            
+            # 수신자가 비어있는 경우 처리
+            if not recipients:
+                print("Warning: No recipients specified")
+                return
+                
+            # 각 수신자에게 개별적으로 전송
+            for recipient in recipients:
+                msg['To'] = recipient
+                server.send_message(msg)
+                print(f"Email sent successfully to {recipient}")
+                
     except Exception as e:
         print(f"Failed to send email: {str(e)}")
+        print(f"SMTP settings - Server: {smtp_server}, Port: {smtp_port}, Login: {email_login}")
+        raise
 
 def format_email_content(news_data, user_name):
     email_body = "<h1> KTI Portfolio Daily News </h1>"
