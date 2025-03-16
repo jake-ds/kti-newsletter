@@ -13,44 +13,37 @@ def send_email(content, recipients):
     email_login = os.environ.get('EMAIL_LOGIN')
     email_password = os.environ.get('EMAIL_PASSWORD')
 
-    print("email_login", email_login)
-    print("email_password", email_password)
+    print(f"Attempting to send email to: {recipients}")
+    print(f"Using SMTP server: {smtp_server}:{smtp_port}")
 
     # 수신자가 비어있는 경우 처리
     if not recipients:
         print("Warning: No recipients specified")
         return
 
-    # 이메일 전송
     try:
+        # 메시지 생성
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = 'KTI Portfolio Daily News'
+        msg['From'] = email_login
+        msg['To'] = ', '.join(recipients)
+        
+        # HTML 형식의 본문 추가
+        html_part = MIMEText(content, 'html')
+        msg.attach(html_part)
+        
+        # SMTP 연결 및 전송
         with smtplib.SMTP(smtp_server, smtp_port) as server:
-            server.ehlo()  # SMTP 서버와 연결 시작
-            server.starttls()  # TLS 보안 시작
-            server.ehlo()  # TLS 후 다시 연결
-            server.login(email_login, email_password)  # 로그인
+            server.ehlo()
+            server.starttls()
+            server.ehlo()
+            server.login(email_login, email_password)
+            server.sendmail(email_login, recipients, msg.as_string())
+            print("Email sent successfully!")
             
-            # 각 수신자에게 개별적으로 전송
-            for recipient in recipients:
-                # 각 수신자별로 새로운 메시지 생성
-                msg = MIMEMultipart('alternative')
-                msg['Subject'] = 'KTI Portfolio Daily News'
-                msg['From'] = email_login
-                msg['To'] = recipient
-                
-                # HTML 형식의 본문 추가
-                html_part = MIMEText(content, 'html')
-                msg.attach(html_part)
-                
-                # 메시지를 문자열로 변환
-                text = msg.as_string()
-                
-                # sendmail 메서드 사용
-                server.sendmail(email_login, [recipient], text)
-                print(f"Email sent successfully to {recipient}")
-                
     except Exception as e:
         print(f"Failed to send email: {str(e)}")
-        print(f"SMTP settings - Server: {smtp_server}, Port: {smtp_port}, Login: {email_login}")
+        print(f"Recipients: {recipients}")
         raise
 
 def format_email_content(news_data, user_name):
