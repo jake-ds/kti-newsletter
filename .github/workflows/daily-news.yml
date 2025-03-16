@@ -22,30 +22,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Test SMTP Connection
-        env:
-          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
-          SMTP_PORT: ${{ secrets.SMTP_PORT }}
-          EMAIL_LOGIN: ${{ secrets.EMAIL_LOGIN }}
-          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-        run: |
-          python -c "
-          import smtplib
-          print('Testing SMTP connection...')
-          print(f'Server: {smtplib.SMTP_SERVER}')
-          print(f'Port: {smtplib.SMTP_PORT}')
-          try:
-              with smtplib.SMTP('${{ secrets.SMTP_SERVER }}', ${{ secrets.SMTP_PORT }}) as server:
-                  print('Server connected')
-                  server.starttls()
-                  print('STARTTLS successful')
-                  server.login('${{ secrets.EMAIL_LOGIN }}', '${{ secrets.EMAIL_PASSWORD }}')
-                  print('Login successful')
-          except Exception as e:
-              print(f'Error: {str(e)}')
-              raise e
-          "
-
       - name: Run news bot
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
