@@ -18,7 +18,7 @@ def send_email(content, recipients):
 
     # 이메일 설정
     msg = MIMEMultipart('alternative')
-    msg['Subject'] = '[KTI] 일일 뉴스 스크랩'
+    msg['Subject'] = 'KTI Portfolio Daily News'
     msg['From'] = email_login
     msg['To'] = ', '.join(recipients)
 

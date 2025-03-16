@@ -63,7 +63,7 @@ for user_name, user_detail in user_info.items():
     user_companies = managed_company.get(user_name, {})
     
     # 테스트 모드일 때는 환경변수의 이메일 주소 사용
-    test_email = os.environ.get("RECIPIENTS")
+    test_email = os.environ.get("TEST_EMAIL")
     user_email = [test_email] if test_email else user_info.get(user_name, {}).get("email", [])
 
     if user_companies:
