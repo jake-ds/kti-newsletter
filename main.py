@@ -42,15 +42,7 @@ def reorder_news_dict(news_dict, user_companies):
 
     return reordered_dict
 
-# test companies Sample dictionary 추가해줘
-companies = {
-    "삼성전자": {
-        "keyword": ["삼성전자", "반도체"]
-    },
-    "현대차": {
-        "keyword": ["현대차", "자동차"]
-    }
-}
+
 for company, detail in tqdm(companies.items()):
     time.sleep(1.0)
     articles = []
