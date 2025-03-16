@@ -4,11 +4,13 @@ import numpy as np
 import time
 import os
 
-# Load environment variables from .env file
+# Load environment variables
 load_dotenv()
 
-# Get API key from environment variable
+# Set OpenAI API key from environment variable
 openai.api_key = os.environ.get("OPENAI_API_KEY")
+if not openai.api_key:
+    raise EnvironmentError("OPENAI_API_KEY environment variable is not set")
 
 def get_embedding(text, model="text-embedding-ada-002"):
 

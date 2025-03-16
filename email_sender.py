@@ -1,35 +1,37 @@
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
-def send_email(news_dict, user_email):
-    msg = MIMEMultipart("alternative")
-    msg["From"] = "KTI Portfolio News <sw.joo@kti.vc>"
-    msg["To"] = user_email
-    msg["Subject"] = "KTI Portfolio Daily News"
-    msg.add_header("X-Google-Original-From", "portfolio_news@kti.vc")
+def send_email(content, recipients):
+    # SMTP 서버 설정
+    smtp_server = os.environ.get('SMTP_SERVER')
+    smtp_port = int(os.environ.get('SMTP_PORT', 587))
+    email_login = os.environ.get('EMAIL_LOGIN')
+    email_password = os.environ.get('EMAIL_PASSWORD')
 
-    # 이메일 본문 설정
-    msg.attach(MIMEText(news_dict, "html"))
+    # 이메일 설정
+    msg = MIMEMultipart('alternative')
+    msg['Subject'] = '[KTI] 일일 뉴스 스크랩'
+    msg['From'] = email_login
+    msg['To'] = ', '.join(recipients)
 
+    # HTML 형식의 본문 추가
+    html_part = MIMEText(content, 'html')
+    msg.attach(html_part)
+
+    # 이메일 전송
     try:
-        # 이메일 서버 설정 및 전송
-        with smtplib.SMTP(
-            os.getenv("SMTP_SERVER", ""), os.getenv("SMTP_PORT", "")
-        ) as server:
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
             server.starttls()
-            server.login(
-                os.getenv("EMAIL_LOGIN", ""),
-                (os.getenv("EMAIL_PASSWORD", "").replace("-", " ")),
-            )
+            server.login(email_login, email_password)
             server.send_message(msg)
-        print("Email sent successfully.")
+            print(f"Email sent successfully to {recipients}")
     except Exception as e:
-        print(f"Failed to send email: {e}")
-
+        print(f"Failed to send email: {str(e)}")
 
 def format_email_content(news_data, user_name):
     email_body = "<h1> KTI Portfolio Daily News </h1>"

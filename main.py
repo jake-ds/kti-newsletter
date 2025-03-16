@@ -1,16 +1,29 @@
 from tqdm import tqdm
 from data_loader import load_json
-from email_sender import format_email_content
-from email_sender import send_email
+from email_sender import format_email_content, send_email
 from filter_similar_news import filter_similar_titles
 from fetch_news import make_target_url, fetch_news
 import time
-import json
 import os
 from dotenv import load_dotenv
 
+# Load environment variables
 load_dotenv()
 
+# Verify environment variables are loaded
+required_env_vars = [
+    'OPENAI_API_KEY',
+    'SMTP_SERVER',
+    'SMTP_PORT',
+    'EMAIL_LOGIN',
+    'EMAIL_PASSWORD'
+]
+
+missing_vars = [var for var in required_env_vars if not os.environ.get(var)]
+if missing_vars:
+    raise EnvironmentError(f"Missing required environment variables: {', '.join(missing_vars)}")
+
+# Load configuration files
 news_dict = {}
 companies = load_json("company_keyword_comment.json")
 user_info = load_json("user_info.json")
