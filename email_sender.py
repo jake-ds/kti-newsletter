@@ -16,15 +16,10 @@ def send_email(content, recipients):
     print("email_login", email_login)
     print("email_password", email_password)
 
-    # 이메일 설정
-    msg = MIMEMultipart('alternative')
-    msg['Subject'] = 'KTI Portfolio Daily News'
-    msg['From'] = email_login
-    msg['To'] = ', '.join(recipients)
-
-    # HTML 형식의 본문 추가
-    html_part = MIMEText(content, 'html')
-    msg.attach(html_part)
+    # 수신자가 비어있는 경우 처리
+    if not recipients:
+        print("Warning: No recipients specified")
+        return
 
     # 이메일 전송
     try:
@@ -34,15 +29,23 @@ def send_email(content, recipients):
             server.ehlo()  # TLS 후 다시 연결
             server.login(email_login, email_password)  # 로그인
             
-            # 수신자가 비어있는 경우 처리
-            if not recipients:
-                print("Warning: No recipients specified")
-                return
-                
             # 각 수신자에게 개별적으로 전송
             for recipient in recipients:
+                # 각 수신자별로 새로운 메시지 생성
+                msg = MIMEMultipart('alternative')
+                msg['Subject'] = 'KTI Portfolio Daily News'
+                msg['From'] = email_login
                 msg['To'] = recipient
-                server.send_message(msg)
+                
+                # HTML 형식의 본문 추가
+                html_part = MIMEText(content, 'html')
+                msg.attach(html_part)
+                
+                # 메시지를 문자열로 변환
+                text = msg.as_string()
+                
+                # sendmail 메서드 사용
+                server.sendmail(email_login, [recipient], text)
                 print(f"Email sent successfully to {recipient}")
                 
     except Exception as e:
