@@ -13,6 +13,11 @@ def send_email(content, recipients):
     email_login = os.environ.get('EMAIL_LOGIN')
     email_password = os.environ.get('EMAIL_PASSWORD')
 
+    smtp_server = "smtp.gmail.com"
+    smtp_port = 587
+    email_login = "sw.joo@ktinvestment.co.kr"
+    email_password = "mdqn-milt-ieso-xlru"
+
     print("email_login", email_login)
     print("email_password", email_password)
 
