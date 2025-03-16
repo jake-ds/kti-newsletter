@@ -6,7 +6,10 @@ from filter_similar_news import filter_similar_titles
 from fetch_news import make_target_url, fetch_news
 import time
 import json
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 news_dict = {}
 companies = load_json("company_keyword_comment.json")
@@ -46,8 +49,10 @@ for company, detail in tqdm(companies.items()):
 # 유저별 뉴스 정렬 후 이메일 발송
 for user_name, user_detail in user_info.items():
     user_companies = managed_company.get(user_name, {})
-
-    user_email = user_info.get(user_name, {}).get("email", [])
+    
+    # 테스트 모드일 때는 환경변수의 이메일 주소 사용
+    test_email = os.environ.get("RECIPIENTS")
+    user_email = [test_email] if test_email else user_info.get(user_name, {}).get("email", [])
 
     if user_companies:
         reordered_news_dict = reorder_news_dict(news_dict, user_companies)
@@ -61,4 +66,9 @@ for user_name, user_detail in user_info.items():
         result_dict[company]["keyword"] = companies[company]["keyword"]
 
     email_body = format_email_content(result_dict, user_name)
+    
+    # 테스트 모드일 때 로그 출력
+    if test_email:
+        print(f"Test mode: Sending email to {test_email}")
+    
     send_email(email_body, user_email)
