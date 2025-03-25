@@ -46,7 +46,7 @@ news_count = 0
 for company, detail in tqdm(companies.items()):
     time.sleep(1.0)
     articles = []
-    for keyword in detail["keyword"]:
+    for keyword in detail["keyword"].split("/"):
         target_url = make_target_url(keyword)
         articles += fetch_news(target_url)
         time.sleep(1.0)
