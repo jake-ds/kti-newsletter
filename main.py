@@ -50,6 +50,7 @@ for company, detail in tqdm(companies.items()):
         target_url = make_target_url(keyword)
         articles += fetch_news(target_url)
         time.sleep(1.0)
+        print(company,":", keyword)
 
     titles = [i[0] for i in articles]
     idx_list = filter_similar_titles(titles)
