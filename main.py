@@ -42,6 +42,7 @@ def reorder_news_dict(news_dict, user_companies):
 
     return reordered_dict
 
+news_count = 0
 for company, detail in tqdm(companies.items()):
     time.sleep(1.0)
     articles = []
@@ -56,7 +57,11 @@ for company, detail in tqdm(companies.items()):
 
     if len(filtered_articles) != 0:
         news_dict[company] = filtered_articles
+        news_count += len(filtered_articles)
 
+if news_count == 0:
+    print("No news found")
+    exit()
 
 # 유저별 뉴스 정렬 후 이메일 발송
 for user_name, user_detail in user_info.items():
