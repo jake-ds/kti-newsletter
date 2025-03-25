@@ -44,9 +44,9 @@ def reorder_news_dict(news_dict, user_companies):
 
 news_count = 0
 for company, detail in tqdm(companies.items()):
-    time.sleep(1.0)
+    time.sleep(1.5)
     articles = []
-    for keyword in detail["keyword"].split("/"):
+    for keyword in detail["keyword"][0].split("/"):
         target_url = make_target_url(keyword)
         articles += fetch_news(target_url)
         time.sleep(1.0)
