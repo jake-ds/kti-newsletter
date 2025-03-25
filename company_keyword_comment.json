@@ -418,5 +418,23 @@
             "스토어링크"
         ],
         "comment": "오픈마켓 최적화 플랫폼"
+    },
+    "힐링페이퍼": {
+        "keyword": [
+            "힐링페이퍼/강남언니"
+        ],
+        "comment": ""
+    },
+    "ConfigIntelligence": {
+        "keyword": [
+            "ConfigIntelligence/컨피그인텔리전스"
+        ],
+        "comment": ""
+    },
+    "인핸스": {
+        "keyword": [
+            "인핸스"
+        ],
+        "comment": ""
     }
 }
