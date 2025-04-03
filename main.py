@@ -49,7 +49,7 @@ for company, detail in tqdm(companies.items()):
     for keyword in detail["keyword"][0].split("/"):
         target_url = make_target_url(keyword)
         articles += fetch_news(target_url)
-        time.sleep(1.0)
+        time.sleep(1.5)
         print(company,":", keyword)
 
     titles = [i[0] for i in articles]
