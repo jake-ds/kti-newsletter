@@ -26,7 +26,7 @@ def send_email(content, recipients):
         msg = MIMEMultipart('alternative')
         msg['Subject'] = 'KTI Portfolio Daily News'
         msg['From'] = email_login
-        msg['To'] = ', '.join(recipients)
+        msg['To'] = recipients
         
         # HTML 형식의 본문 추가
         html_part = MIMEText(content, 'html')
