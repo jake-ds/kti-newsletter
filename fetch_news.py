@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 import random
 
+
 def get_search_interval():
     current_time = datetime.now()
     one_day_ago = current_time - timedelta(days=1)
@@ -24,21 +25,19 @@ def make_target_url(search_keyword):
 
 
 def fetch_news(target_url):
-
-
     # User-Agent 목록
     user_agents = [
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64)  AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)  AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
-        'Mozilla/5.0 (iPad; CPU OS 12_2 like Mac OS X)  AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64)  AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)  AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (iPad; CPU OS 12_2 like Mac OS X)  AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
     ]
 
     headers = {
-        'User-Agent': random.choice(user_agents),
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'ko-KR,ko;q=0.8,en-US;q=0.5,en;q=0.3',
-}
-    
+        "User-Agent": random.choice(user_agents),
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Accept-Language": "ko-KR,ko;q=0.8,en-US;q=0.5,en;q=0.3",
+    }
+
     try:
         response = requests.get(target_url, headers=headers)
         response.raise_for_status()
@@ -46,17 +45,19 @@ def fetch_news(target_url):
         print(f"Error fetching news: {e}")
         return []
 
-    soup = BeautifulSoup(response.text, 'html.parser')
+    soup = BeautifulSoup(response.text, "html.parser")
     articles = []
 
-    for item in soup.find_all('div', class_='news_area'):
-        title_tag = item.find('a', class_='news_tit')
-        desc_tag = item.find('div', class_='news_dsc')
+    for item in soup.find_all("div", class_="news_area"):
+        print("=" * 100)
+        print(item)
+        title_tag = item.find("a", class_="news_tit")
+        desc_tag = item.find("div", class_="news_dsc")
 
         if title_tag and desc_tag:
-            title = title_tag.get('title', '').strip()
+            title = title_tag.get("title", "").strip()
             description = desc_tag.get_text(strip=True)
-            url = title_tag.get('href', '').strip()
+            url = title_tag.get("href", "").strip()
             articles.append((title, description, url))
 
     return articles

@@ -5,6 +5,8 @@ name = "pypi"
 
 [packages]
 beautifulsoup4 = "==4.12.2"
+jupyter = "*"
+lxml = "*"
 
 [dev-packages]
 
