@@ -7,6 +7,8 @@ name = "pypi"
 beautifulsoup4 = "==4.12.2"
 jupyter = "*"
 lxml = "*"
+playwright = ">=1.40.0"
+openai = "*"
 
 [dev-packages]
 

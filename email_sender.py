@@ -6,12 +6,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 def send_email(content, recipients):
     # SMTP 서버 설정
-    smtp_server = os.environ.get('SMTP_SERVER')
-    smtp_port = int(os.environ.get('SMTP_PORT', 587))
-    email_login = os.environ.get('EMAIL_LOGIN')
-    email_password = os.environ.get('EMAIL_PASSWORD')
+    smtp_server = os.environ.get("SMTP_SERVER")
+    smtp_port = int(os.environ.get("SMTP_PORT", 587))
+    email_login = os.environ.get("EMAIL_LOGIN")
+    email_password = os.environ.get("EMAIL_PASSWORD")
+    email_password = email_password.replace("-", " ")
 
     print(f"Attempting to send email to: {recipients}")
     print(f"Using SMTP server: {smtp_server}:{smtp_port}")
@@ -23,15 +25,15 @@ def send_email(content, recipients):
 
     try:
         # 메시지 생성
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = 'KTI Portfolio Daily News'
-        msg['From'] = email_login
-        msg['To'] = recipients
-        
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = "KTI Portfolio Daily News"
+        msg["From"] = email_login
+        msg["To"] = recipients
+
         # HTML 형식의 본문 추가
-        html_part = MIMEText(content, 'html')
+        html_part = MIMEText(content, "html")
         msg.attach(html_part)
-        
+
         # SMTP 연결 및 전송
         with smtplib.SMTP(smtp_server, smtp_port) as server:
             server.ehlo()
@@ -40,11 +42,12 @@ def send_email(content, recipients):
             server.login(email_login, email_password)
             server.sendmail(email_login, recipients, msg.as_string())
             print("Email sent successfully!")
-            
+
     except Exception as e:
         print(f"Failed to send email: {str(e)}")
         print(f"Recipients: {recipients}")
         raise
+
 
 def format_email_content(news_data, user_name):
     email_body = "<h1> KTI Portfolio Daily News </h1>"

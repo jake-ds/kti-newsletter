@@ -2,6 +2,9 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 import random
+import asyncio
+import json
+from playwright.async_api import async_playwright
 
 
 def get_search_interval():
@@ -24,40 +27,33 @@ def make_target_url(search_keyword):
     return target_url
 
 
-def fetch_news(target_url):
+async def fetch_html(url: str) -> str:
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        page = await browser.new_page()
+        await page.goto(url, wait_until="networkidle")  # JS 렌더링 끝까지 대기
+        html = await page.content()
+        await browser.close()
+        return html
+
+
+async def fetch_news(target_url):
     # User-Agent 목록
-    user_agents = [
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64)  AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)  AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (iPad; CPU OS 12_2 like Mac OS X)  AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
-    ]
+    html = await fetch_html(target_url)
+    soup = BeautifulSoup(html, "html.parser")
 
-    headers = {
-        "User-Agent": random.choice(user_agents),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "Accept-Language": "ko-KR,ko;q=0.8,en-US;q=0.5,en;q=0.3",
-    }
-
-    try:
-        response = requests.get(target_url, headers=headers)
-        response.raise_for_status()
-    except requests.RequestException as e:
-        print(f"Error fetching news: {e}")
-        return []
-
-    soup = BeautifulSoup(response.text, "html.parser")
     articles = []
+    for card in soup.select("div.sds-comps-base-layout"):
+        # 제목(span 에 headline1 클래스 포함)
+        title_span = card.select_one("span.sds-comps-text-type-headline1")
+        if not title_span:
+            continue  # 제목 없으면 뉴스 카드로 보지 않음
 
-    for item in soup.find_all("div", class_="news_area"):
-        print("=" * 100)
-        print(item)
-        title_tag = item.find("a", class_="news_tit")
-        desc_tag = item.find("div", class_="news_dsc")
+        title = title_span.get_text(" ", strip=True)
+        link = title_span.find_parent("a")["href"]
 
-        if title_tag and desc_tag:
-            title = title_tag.get("title", "").strip()
-            description = desc_tag.get_text(strip=True)
-            url = title_tag.get("href", "").strip()
-            articles.append((title, description, url))
-
+        # 내용(span 에 ellipsis-3 클래스 포함)
+        content_span = card.select_one("span.sds-comps-text-ellipsis-3")
+        content = content_span.get_text(" ", strip=True) if content_span else ""
+        articles.append((title, content, link))
     return articles

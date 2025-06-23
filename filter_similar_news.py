@@ -1,21 +1,23 @@
 from dotenv import load_dotenv
-import openai
+from openai import OpenAI
 import numpy as np
 import time
 import os
 
 # Load environment variables
 load_dotenv()
+openai_client = OpenAI()
 
 # Set OpenAI API key from environment variable
-openai.api_key = os.environ.get("OPENAI_API_KEY")
-if not openai.api_key:
+openai_client.api_key = os.environ.get("OPENAI_API_KEY")
+if not openai_client.api_key:
     raise EnvironmentError("OPENAI_API_KEY environment variable is not set")
 
-def get_embedding(text, model="text-embedding-ada-002"):
 
-    response = openai.Embedding.create(input=text, model=model)
-    return response["data"][0]["embedding"]
+def get_embedding(text, model="text-embedding-ada-002"):
+    response = openai_client.embeddings.create(input=text, model=model)
+
+    return response.data[0].embedding
 
 
 def cosine_similarity(vec1, vec2):
@@ -53,21 +55,19 @@ def filter_similar_titles(titles, threshold=0.85):
 def is_relevant(news, business_content):
     max_retries = 1
     wait_times = [5, 10, 15]  # seconds
-    
+
     for attempt in range(max_retries):
         try:
             prompt = f"뉴스: {news}\n\n이 뉴스가 다음 사업 내용과 관련이 있나요?\n\n사업 내용: {business_content}\n\n관련이 있다면 'Yes', 관련이 없다면 'No'로 답변해 주세요."
-            response = openai.Completion.create(
-                model="text-davinci-003",
-                prompt=prompt,
-                max_tokens=10
+            response = openai_client.Completion.create(
+                model="text-davinci-003", prompt=prompt, max_tokens=10
             )
             answer = response.choices[0].text.strip().lower()
             if answer == "yes":
                 return True
             elif answer == "no":
                 return False
-        except openai.error.RateLimitError:
+        except openai_client.error.RateLimitError:
             if attempt == max_retries - 1:
                 print("Failed after all retries due to rate limits")
                 return False
