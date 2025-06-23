@@ -3,7 +3,6 @@ from data_loader import load_json
 from email_sender import format_email_content, send_email
 from filter_similar_news import filter_similar_titles
 from fetch_news import make_target_url, fetch_news
-import time
 import os
 import asyncio
 from dotenv import load_dotenv

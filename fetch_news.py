@@ -1,9 +1,5 @@
-import requests
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
-import random
-import asyncio
-import json
 from playwright.async_api import async_playwright
 
 
