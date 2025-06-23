@@ -29,7 +29,7 @@ if missing_vars:
 # Load configuration files
 news_dict = {}
 companies = load_json("company_keyword_comment.json")
-user_info = load_json("user_info_test.json")
+user_info = load_json("user_info.json")
 managed_company = load_json("manager_company_map.json")
 
 
