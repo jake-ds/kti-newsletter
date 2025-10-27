@@ -1,3 +1,10 @@
+"""
+테스트용 뉴스봇 스크립트
+- 소수의 회사만 테스트
+- sw.joo@kti.vc로만 발송
+- 베타 테스트 모드 활성화
+"""
+
 from tqdm import tqdm
 from data_loader import load_json
 from email_sender import format_email_content, send_email
@@ -28,21 +35,31 @@ if missing_vars:
 # Load configuration files
 news_dict = {}
 companies = load_json("company_keyword_comment.json")
-user_info = load_json("user_info.json")
-managed_company = load_json("manager_company_map.json")
 
+# 테스트용 회사 선택 (5개만)
+TEST_COMPANIES = [
+    "클래스101",
+    "번개장터",
+    "뉴로메카",
+    "리벨리온",
+    "힐링페이퍼"
+]
 
-def reorder_news_dict(news_dict, user_companies):
-    reordered_dict = {}
-    for company in user_companies:
-        if company in news_dict.keys():
-            reordered_dict[company] = news_dict[company]
+# 테스트 대상 회사만 필터링
+companies = {k: v for k, v in companies.items() if k in TEST_COMPANIES}
 
-    for company, _ in news_dict.items():
-        if company not in reordered_dict:
-            reordered_dict[company] = news_dict[company]
+# 테스트 이메일 주소
+TEST_EMAIL = "sw.joo@kti.vc"
+TEST_USER_NAME = "주상원"
 
-    return reordered_dict
+print(f"\n{'='*60}")
+print(f"🧪 TEST MODE")
+print(f"{'='*60}")
+print(f"Testing companies: {', '.join(TEST_COMPANIES)}")
+print(f"Email recipient: {TEST_EMAIL}")
+print(f"Beta test mode: {os.environ.get('BETA_TEST_MODE', 'true')}")
+print(f"Relevance threshold: {os.environ.get('RELEVANCE_THRESHOLD', '6')}")
+print(f"{'='*60}\n")
 
 
 async def main():
@@ -57,7 +74,7 @@ async def main():
             target_url = make_target_url(keyword)
             articles += await fetch_news(target_url)
             await asyncio.sleep(1.5)
-            print(company, ":", keyword)
+            print(f"{company} : {keyword}")
 
         titles = [i[0] for i in articles]
         idx_list = filter_similar_titles(titles)
@@ -76,7 +93,7 @@ async def main():
 
     # Step 2: AI 기반 관련성 필터링
     enable_relevance_filter = os.environ.get("ENABLE_RELEVANCE_FILTER", "true").lower() == "true"
-    beta_test_mode = os.environ.get("BETA_TEST_MODE", "false").lower() == "true"
+    beta_test_mode = os.environ.get("BETA_TEST_MODE", "true").lower() == "true"
 
     if enable_relevance_filter:
         print("\n=== Step 2: AI-based relevance filtering ===")
@@ -108,36 +125,22 @@ async def main():
         print("\n=== Step 2: AI relevance filtering is DISABLED ===")
         print("Set ENABLE_RELEVANCE_FILTER=true to enable it")
 
-    # 유저별 뉴스 정렬 후 이메일 발송
-    for user_name, user_detail in user_info.items():
-        user_companies = managed_company.get(user_name, {})
+    # Step 3: 이메일 발송 (테스트 이메일로만)
+    print(f"\n=== Step 3: Sending test email to {TEST_EMAIL} ===")
 
-        # 테스트 모드일 때는 환경변수의 이메일 주소 사용
-        test_email = os.environ.get("TEST_EMAIL")
-        user_email = (
-            [test_email]
-            if test_email
-            else user_info.get(user_name, {}).get("email", [])
-        )
+    result_dict = {}
+    for company, news_list in news_dict.items():
+        result_dict[company] = {"news_list": [], "keyword": []}
+        result_dict[company]["news_list"] = news_list
+        result_dict[company]["keyword"] = companies[company]["keyword"]
 
-        if user_companies:
-            reordered_news_dict = reorder_news_dict(news_dict, user_companies)
-        else:
-            reordered_news_dict = news_dict
+    email_body = format_email_content(result_dict, TEST_USER_NAME)
 
-        result_dict = {}
-        for company, news_list in reordered_news_dict.items():
-            result_dict[company] = {"news_list": [], "keyword": []}
-            result_dict[company]["news_list"] = news_list
-            result_dict[company]["keyword"] = companies[company]["keyword"]
+    print(f"Sending email to {TEST_EMAIL}...")
+    send_email(email_body, TEST_EMAIL)
 
-        email_body = format_email_content(result_dict, user_name)
-
-        # 테스트 모드일 때 로그 출력
-        if test_email:
-            print(f"Test mode: Sending email to {test_email}")
-
-        send_email(email_body, user_email)
+    print(f"\n✅ Test completed successfully!")
+    print(f"📧 Email sent to: {TEST_EMAIL}")
 
 
 if __name__ == "__main__":
