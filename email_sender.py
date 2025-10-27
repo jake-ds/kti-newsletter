@@ -75,6 +75,7 @@ def format_email_content(news_data, user_name):
             <strong>업데이트 소식:</strong><br>
             수신자별로 담당 포트폴리오사의 뉴스가 상단에 배치됩니다. <br>
             각 회사별 검색 키워드도 함께 제공됩니다. <br>
+            <span style="color: #0066cc; font-weight: bold;">🆕 AI 필터로 관련 없는 뉴스를 필터링하는 기능을 테스트 중입니다!</span><br>
             ** 키워드 추가/변경/삭제를 원하실 경우 언제든 말씀해주세요!<br>
             ** 회사별 키워드는 <a href="https://drive.google.com/drive/u/0/folders/1Y_SD1yqjnijE6pY52c1xRp2yxBePHuzq" style="color: #1a73e8; text-decoration: none;">KTI 공용드라이브의 구글시트</a>에서 관리 중입니다. 변경하실 경우 담당자에게 변경사실을 알려주세요
         </p>
