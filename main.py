@@ -76,14 +76,23 @@ async def main():
 
     # Step 2: AI 기반 관련성 필터링
     enable_relevance_filter = os.environ.get("ENABLE_RELEVANCE_FILTER", "true").lower() == "true"
+    beta_test_mode = os.environ.get("BETA_TEST_MODE", "false").lower() == "true"
 
     if enable_relevance_filter:
         print("\n=== Step 2: AI-based relevance filtering ===")
         relevance_threshold = int(os.environ.get("RELEVANCE_THRESHOLD", "6"))
         print(f"Relevance threshold: {relevance_threshold}/10")
 
+        if beta_test_mode:
+            print("⚠️  BETA TEST MODE: Low relevance news will be included with warnings")
+
         # AI 관련성 필터링 적용
-        filtered_news_dict = filter_news_by_relevance(news_dict, companies, threshold=relevance_threshold)
+        filtered_news_dict = filter_news_by_relevance(
+            news_dict,
+            companies,
+            threshold=relevance_threshold,
+            beta_mode=beta_test_mode
+        )
 
         # 필터링된 결과로 업데이트
         news_dict.clear()

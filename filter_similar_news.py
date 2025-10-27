@@ -123,7 +123,7 @@ def check_news_relevance(news_title, news_description, business_content):
     return 0
 
 
-def filter_news_by_relevance(news_data, company_info, threshold=6):
+def filter_news_by_relevance(news_data, company_info, threshold=6, beta_mode=False):
     """
     AI 기반 관련성 점수로 뉴스 필터링
 
@@ -131,13 +131,17 @@ def filter_news_by_relevance(news_data, company_info, threshold=6):
         news_data: {회사명: [(제목, 설명, 링크), ...]} 형태의 뉴스 데이터
         company_info: {회사명: {"comment": "사업내용", ...}} 형태의 회사 정보
         threshold: 관련성 점수 임계값 (기본값 6, 0-10 범위)
+        beta_mode: 베타 테스트 모드 (True면 필터링하지 않고 점수만 추가)
 
     Returns:
         filtered_news_data: 필터링된 뉴스 데이터
+        - 일반 모드: {회사명: [(제목, 설명, 링크), ...]}
+        - 베타 모드: {회사명: [(제목, 설명, 링크, 점수), ...]}
     """
     filtered_news_data = {}
     total_news = 0
     filtered_news_count = 0
+    low_relevance_count = 0
 
     for company, news_list in news_data.items():
         business_content = company_info.get(company, {}).get("comment", "")
@@ -157,11 +161,20 @@ def filter_news_by_relevance(news_data, company_info, threshold=6):
 
             print(f"  [{company}] Score: {score}/10 - {title[:50]}...")
 
-            if score >= threshold:
-                filtered_news.append(news_item)
+            if beta_mode:
+                # 베타 모드: 모든 뉴스를 포함하되 점수를 추가
+                filtered_news.append((title, description, link, score))
                 filtered_news_count += 1
+                if score < threshold:
+                    low_relevance_count += 1
+                    print(f"    → Low relevance (score {score} < threshold {threshold}) - Will be shown with warning")
             else:
-                print(f"    → Filtered out (score {score} < threshold {threshold})")
+                # 일반 모드: 임계값 이상만 포함
+                if score >= threshold:
+                    filtered_news.append(news_item)
+                    filtered_news_count += 1
+                else:
+                    print(f"    → Filtered out (score {score} < threshold {threshold})")
 
             # Rate limiting
             time.sleep(0.5)
@@ -171,7 +184,13 @@ def filter_news_by_relevance(news_data, company_info, threshold=6):
 
     print(f"\n=== Relevance Filtering Summary ===")
     print(f"Total news before filtering: {total_news}")
-    print(f"News after filtering: {filtered_news_count}")
-    print(f"Filtered out: {total_news - filtered_news_count} ({(total_news - filtered_news_count) / total_news * 100:.1f}%)")
+    if beta_mode:
+        print(f"BETA MODE: All news included with relevance scores")
+        print(f"News with high relevance (>= {threshold}): {filtered_news_count - low_relevance_count}")
+        print(f"News with low relevance (< {threshold}): {low_relevance_count}")
+        print(f"  → These will be marked as '[관련성 낮음 - 필터링 예정]'")
+    else:
+        print(f"News after filtering: {filtered_news_count}")
+        print(f"Filtered out: {total_news - filtered_news_count} ({(total_news - filtered_news_count) / total_news * 100:.1f}%)")
 
     return filtered_news_data
