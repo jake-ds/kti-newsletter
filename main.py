@@ -1,7 +1,7 @@
 from tqdm import tqdm
 from data_loader import load_json
 from email_sender import format_email_content, send_email
-from filter_similar_news import filter_similar_titles
+from filter_similar_news import filter_similar_titles, filter_news_by_relevance
 from fetch_news import make_target_url, fetch_news
 import os
 import asyncio
@@ -47,6 +47,9 @@ def reorder_news_dict(news_dict, user_companies):
 
 async def main():
     news_count = 0
+
+    # Step 1: 키워드로 뉴스 검색 및 중복 제거
+    print("\n=== Step 1: Fetching news and removing duplicates ===")
     for company, detail in tqdm(companies.items()):
         await asyncio.sleep(1.5)
         articles = []
@@ -68,6 +71,33 @@ async def main():
     if news_count == 0:
         print("No news found")
         return
+
+    print(f"\nTotal news after deduplication: {news_count}")
+
+    # Step 2: AI 기반 관련성 필터링
+    enable_relevance_filter = os.environ.get("ENABLE_RELEVANCE_FILTER", "true").lower() == "true"
+
+    if enable_relevance_filter:
+        print("\n=== Step 2: AI-based relevance filtering ===")
+        relevance_threshold = int(os.environ.get("RELEVANCE_THRESHOLD", "6"))
+        print(f"Relevance threshold: {relevance_threshold}/10")
+
+        # AI 관련성 필터링 적용
+        filtered_news_dict = filter_news_by_relevance(news_dict, companies, threshold=relevance_threshold)
+
+        # 필터링된 결과로 업데이트
+        news_dict.clear()
+        news_dict.update(filtered_news_dict)
+
+        final_news_count = sum(len(articles) for articles in news_dict.values())
+        print(f"\nFinal news count after relevance filtering: {final_news_count}")
+
+        if final_news_count == 0:
+            print("No relevant news found after filtering")
+            return
+    else:
+        print("\n=== Step 2: AI relevance filtering is DISABLED ===")
+        print("Set ENABLE_RELEVANCE_FILTER=true to enable it")
 
     # 유저별 뉴스 정렬 후 이메일 발송
     for user_name, user_detail in user_info.items():
