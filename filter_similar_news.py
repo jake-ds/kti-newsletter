@@ -52,14 +52,16 @@ def filter_similar_titles(titles, threshold=0.85):
     return [idx for _, _, idx in unique_titles]
 
 
-def check_news_relevance(news_title, news_description, business_content):
+def check_news_relevance(news_title, news_description, company_name, business_content, keywords):
     """
     뉴스 기사가 회사 사업 내용과 얼마나 관련이 있는지 0-10 점수로 평가
 
     Args:
         news_title: 뉴스 제목
         news_description: 뉴스 설명/요약
+        company_name: 회사명
         business_content: 회사 사업 내용
+        keywords: 검색에 사용된 키워드 리스트
 
     Returns:
         int: 0-10 관련성 점수 (10이 가장 관련성 높음)
@@ -69,44 +71,88 @@ def check_news_relevance(news_title, news_description, business_content):
 
     for attempt in range(max_retries):
         try:
-            prompt = f"""다음 뉴스 기사가 회사의 사업 내용과 얼마나 관련이 있는지 0-10 점수로 평가해주세요.
+            keywords_str = ', '.join(keywords) if isinstance(keywords, list) else str(keywords)
 
-뉴스 제목: {news_title}
-뉴스 내용: {news_description}
+            prompt = f"""다음 뉴스가 회사와 얼마나 관련이 있는지 0-10으로 평가해주세요.
 
-회사 사업 내용: {business_content}
+**회사 정보:**
+- 회사명: {company_name}
+- 사업 내용: {business_content}
+- 검색 키워드: {keywords_str}
 
-평가 기준:
-- 10점: 회사의 핵심 사업/제품/서비스에 직접적으로 관련된 뉴스
-- 7-9점: 회사의 사업 분야와 밀접하게 관련된 뉴스
-- 4-6점: 회사가 속한 산업이나 시장과 간접적으로 관련된 뉴스
-- 1-3점: 회사명은 언급되지만 사업과 거의 관련 없는 뉴스
-- 0점: 완전히 관련 없는 뉴스 (동음이의어, 오타 등)
+**뉴스 정보:**
+- 제목: {news_title}
+- 내용: {news_description}
 
-0-10 사이의 숫자만 답변해주세요."""
+**평가 순서:**
+1. 먼저 회사명이나 검색 키워드가 뉴스에 직접 언급되는지 확인
+2. 검색 키워드가 회사와 무관한 맥락으로 사용되었는지 확인 (예: "파운트" 회사인데 "어마운트", "마운트" 같은 다른 단어)
+3. 뉴스 내용이 회사 사업과 관련 있는지 평가
+
+**점수 기준:**
+- 10점: 회사명 직접 언급 + 핵심 사업/제품/서비스 직접 관련
+- 7-9점: 회사명 직접 언급 + 일반 사업 활동 관련
+- 4-6점: 회사명 언급 없지만 산업/시장과 관련, 또는 파트너사/경쟁사 관련
+- 1-3점: 키워드만 일치하나 사업과 거의 무관, 또는 간접 언급
+- 0점: 동음이의어/오타/완전 무관 (키워드가 다른 의미로 사용됨)
+
+**특별 주의사항:**
+- 회사명이 뉴스에 전혀 언급되지 않으면 일반적으로 5점 이하
+- 검색 키워드가 다른 단어의 일부로 포함된 경우 (예: "~마운트"는 "파운트"와 무관) 0-1점
+- 단순 키워드 일치보다 의미적 관련성을 우선 평가
+
+먼저 판단 근거를 한 문장으로 간단히 설명하고, 마지막 줄에 "점수: X" 형식으로 점수를 출력하세요.
+예시: 회사명이 직접 언급되고 신규 서비스 출시 내용이므로 핵심 사업 관련 | 점수: 9"""
 
             response = openai_client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "당신은 뉴스 기사와 회사 사업의 관련성을 평가하는 전문가입니다. 0-10 사이의 숫자로만 답변하세요."},
+                    {"role": "system", "content": "당신은 뉴스 기사와 회사 사업의 관련성을 평가하는 전문가입니다. 판단 근거를 간단히 설명하고 마지막에 '점수: X' 형식으로 0-10 사이의 점수를 제시하세요."},
                     {"role": "user", "content": prompt}
                 ],
-                max_tokens=10,
-                temperature=0.3
+                max_tokens=100,
+                temperature=0.2
             )
 
             answer = response.choices[0].message.content.strip()
 
-            # 숫자 추출
+            # 판단 근거와 점수 분리
+            reasoning = ""
+            score_str = ""
+
+            # "점수: X" 패턴 찾기
+            if "점수:" in answer or "점수 :" in answer:
+                parts = answer.split("|")
+                if len(parts) == 2:
+                    reasoning = parts[0].strip()
+                    score_part = parts[1].strip()
+                else:
+                    score_part = answer
+
+                # 점수 추출
+                import re
+                score_match = re.search(r'점수\s*:\s*(\d+)', score_part)
+                if score_match:
+                    score_str = score_match.group(1)
+            else:
+                # "점수:" 패턴이 없으면 숫자만 추출 시도
+                import re
+                score_match = re.search(r'\b(\d+)\b', answer)
+                if score_match:
+                    score_str = score_match.group(1)
+
+            # 숫자 변환 및 검증
             try:
-                score = int(answer)
+                score = int(score_str)
                 if 0 <= score <= 10:
+                    if reasoning:
+                        print(f"    Reasoning: {reasoning[:100]}...")
                     return score
                 else:
                     print(f"Warning: Score {score} out of range, defaulting to 0")
                     return 0
-            except ValueError:
-                print(f"Warning: Could not parse score '{answer}', defaulting to 0")
+            except (ValueError, AttributeError):
+                print(f"Warning: Could not parse score from '{answer}', defaulting to 0")
                 return 0
 
         except Exception as e:
@@ -145,6 +191,7 @@ def filter_news_by_relevance(news_data, company_info, threshold=6, beta_mode=Fal
 
     for company, news_list in news_data.items():
         business_content = company_info.get(company, {}).get("comment", "")
+        keywords = company_info.get(company, {}).get("keyword", [])
 
         if not business_content:
             print(f"Warning: No business content for {company}, skipping relevance check")
@@ -157,7 +204,7 @@ def filter_news_by_relevance(news_data, company_info, threshold=6, beta_mode=Fal
             title, description, link = news_item
 
             # AI로 관련성 점수 평가
-            score = check_news_relevance(title, description, business_content)
+            score = check_news_relevance(title, description, company, business_content, keywords)
 
             print(f"  [{company}] Score: {score}/10 - {title[:50]}...")
 
