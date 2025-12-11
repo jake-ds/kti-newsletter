@@ -63,31 +63,31 @@
         "keyword": [
             "뉴로메카"
         ],
-        "comment": "협동로봇 및 플랫폼 개발"
+        "comment": "협동로봇 'Indy' 제조 및 로봇자동화 RaaS 플랫폼 구축"
     },
     "번개장터": {
         "keyword": [
             "번개장터"
         ],
-        "comment": "중고거래플랫폼"
+        "comment": "모바일 중고거래 플랫폼 안전결제 및 AI 사기탐지 시스템 제공"
     },
     "비즈마켓렌탈": {
         "keyword": [
             "비즈마켓렌탈"
         ],
-        "comment": "B2B/B2G 렌탈 전문기업"
+        "comment": "사무기기·주방설비 등 B2B/B2G 렌탈 전문 서비스"
     },
     "클래스101": {
         "keyword": [
             "클래스101"
         ],
-        "comment": "온라인 취미 교육 플랫폼"
+        "comment": "취미/재테크/커리어 등 온라인 강좌 플랫폼 및 키트 판매"
     },
     "Phantom AI, Inc.": {
         "keyword": [
             "Phantom AI/팬텀AI"
         ],
-        "comment": "자율주행 통합 플랫폼 개발"
+        "comment": "카메라 기반 ADAS 및 자율주행 통합 플랫폼(PhantomVision 등) 개발"
     },
     "엑스트라이버": {
         "keyword": [
@@ -99,7 +99,7 @@
         "keyword": [
             "Superb AI/슈퍼브에이아이"
         ],
-        "comment": "머신러닝 데이터 플랫폼 개발"
+        "comment": "AI 개발 전주기 지원 MLOps/DataOps 플랫폼 '슈퍼브 플랫폼' 제공"
     },
     "오토앤": {
         "keyword": [
@@ -111,13 +111,13 @@
         "keyword": [
             "트위니"
         ],
-        "comment": "실내 물류 자율주행 로봇"
+        "comment": "인프라 없는 자율주행 물류 이송 로봇 '나르고' 개발"
     },
     "링크플로우": {
         "keyword": [
             "링크플로우"
         ],
-        "comment": "360도 웨어러블 바디 카메라"
+        "comment": "360도 넥밴드형 웨어러블 카메라 'FITT360' 및 산업용 'NEXX360' 제조"
     },
     "브룩허스트거라지": {
         "keyword": [
@@ -183,7 +183,7 @@
         "keyword": [
             "비브로스/똑딱"
         ],
-        "comment": "병원예약 진료 플랫폼 '똑닥'"
+        "comment": "EMR 연동 병원 예약/접수/결제 통합 플랫폼 '똑딱' 운영"
     },
     "Movandi Corporation": {
         "keyword": [
@@ -195,13 +195,13 @@
         "keyword": [
             "LVIS"
         ],
-        "comment": "뇌질환진단 SW 및 의료기기"
+        "comment": "AI 기반 뇌질환 진단 소프트웨어 'NeuroMatch' 개발"
     },
     "큐에스택": {
         "keyword": [
             "큐에스택"
         ],
-        "comment": "의료용 현장 진단기기"
+        "comment": "스마트 소변검사 키트 등 모바일 기반 현장진단 의료기기 개발"
     },
     "엔코드": {
         "keyword": [
@@ -219,7 +219,7 @@
         "keyword": [
             "팀프레시"
         ],
-        "comment": "통합 콜드체인 물류 플랫폼"
+        "comment": "새벽배송·풀필먼트·화물주선 등 통합 콜드체인 물류 플랫폼"
     },
     "쿠캣": {
         "keyword": [
@@ -231,7 +231,7 @@
         "keyword": [
             "로엔서지컬"
         ],
-        "comment": "수술용 의료 로봇"
+        "comment": "세계 최초 AI기반 신장결석 수술로봇 '자메닉스' 개발 및 최소침습수술 솔루션"
     },
     "휴멜로": {
         "keyword": [
@@ -267,7 +267,7 @@
         "keyword": [
             "PortOne/포트원"
         ],
-        "comment": "B2B 대상 통합 결제 연동 솔루션"
+        "comment": "멀티 PG 통합 결제 연동 및 정산관리 솔루션"
     },
     "페이타랩": {
         "keyword": [
@@ -291,13 +291,13 @@
         "keyword": [
             "아드리엘"
         ],
-        "comment": "온라인 마케팅 통합 대시보드 개발"
+        "comment": "실시간 디지털 마케팅 통합 대시보드 및 애드옵스 자동화 솔루션"
     },
     "시큐레터": {
         "keyword": [
             "시큐레터"
         ],
-        "comment": "이메일 문서 보안 솔루션"
+        "comment": "제로트러스트 기반 이메일 보안 및 APT 탐지 솔루션 제공"
     },
     "열매컴퍼니": {
         "keyword": [
@@ -309,7 +309,7 @@
         "keyword": [
             "헥슬란트"
         ],
-        "comment": "블록체인 지갑 옥텟 개발사"
+        "comment": "26개 블록체인 지원 가상자산 지갑 구축 솔루션 '옥텟' 제공"
     },
     "룩코": {
         "keyword": [
@@ -321,7 +321,7 @@
         "keyword": [
             "리벨리온"
         ],
-        "comment": "인공지능용 반도체 집적회로 설계"
+        "comment": "AI 추론 특화 반도체 'ATOM', 'REBEL' 개발 및 데이터센터 공급"
     },
     "타인에이아이": {
         "keyword": [
@@ -369,13 +369,13 @@
         "keyword": [
             "그린벳"
         ],
-        "comment": "반려동물 검사 레퍼런스 랩 서비스"
+        "comment": "GC 기반 반려동물 전문 진단검사 레퍼런스 랩 서비스"
     },
     "인이지": {
         "keyword": [
             "인이지"
         ],
-        "comment": "제조 공정 최적화 솔루션"
+        "comment": "AI 기반 제조 공정 최적화 및 에너지 절감 솔루션 제공"
     },
     "페리지에어로스페이스": {
         "keyword": [
@@ -393,49 +393,49 @@
         "keyword": [
             "포토이즘"
         ],
-        "comment": "포토이즘"
+        "comment": "국내 최대 셀프사진관 브랜드 '포토이즘' 운영 및 글로벌 15개국 진출"
     },
     "케이엘큐브": {
         "keyword": [
             "케이엘큐브/핸드싸인톡톡"
         ],
-        "comment": "AICC 통합플랫폼 및 AI수어"
+        "comment": "AI 수어 번역 서비스 '핸드사인톡톡' 및 AICC 통합플랫폼 제공"
     },
     "스토어링크": {
         "keyword": [
             "스토어링크/퍼그샵"
         ],
-        "comment": "오픈마켓 최적화 플랫폼"
+        "comment": "이커머스 최적화 플랫폼 및 체험단 서비스 '퍼그샵' 운영"
     },
     "힐링페이퍼": {
         "keyword": [
             "힐링페이퍼/강남언니/UNNI"
         ],
-        "comment": ""
+        "comment": "미용의료 정보 플랫폼 '강남언니' 및 글로벌 서비스 'UNNI' 운영"
     },
     "ConfigIntelligence": {
         "keyword": [
             "ConfigIntelligence/컨피그인텔리전스"
         ],
-        "comment": ""
+        "comment": "로봇을 위한 물리적 AI 기술(Vision-Language-Action 모델) 개발"
     },
     "인핸스": {
         "keyword": [
             "인핸스/CommerceOS"
         ],
-        "comment": ""
+        "comment": "AI 기반 커머스 자동화 솔루션 'CommerceOS' 개발 및 재고/가격 관리 LAM 기술"
     },
     "코스모비": {
         "keyword": [
             "코스모비/홀추력기"
         ],
-        "comment": ""
+        "comment": "위성용 홀추력기(전기추진) 개발 및 초소형위성 추진시스템 상용화"
     },
     "클레": {
         "keyword": [
             "클레/copick"
         ],
-        "comment": ""
+        "comment": "AI 기반 3차원 머신비전 카메라 'CoPick3D' 및 공정자동화 솔루션 개발"
     },
     "사이오닉에이아이": {
         "keyword": [

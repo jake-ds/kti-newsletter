@@ -1,0 +1,52 @@
+name: Test News Bot (Beta)
+
+on:
+  workflow_dispatch: # 수동 실행만 가능
+
+jobs:
+  test-news-bot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Check environment
+        run: |
+          echo "Current time (UTC): $(date)"
+          echo "Python version: $(python --version)"
+          echo "Working directory: $(pwd)"
+          echo "Repository: ${{ github.repository }}"
+          echo "Branch: ${{ github.ref }}"
+          echo "Test Mode: Sending to sw.joo@kti.vc only"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Playwright Browsers
+        run: |
+          python -m playwright install
+
+      - name: Run test news bot
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          EMAIL_LOGIN: ${{ secrets.EMAIL_LOGIN }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          ENABLE_RELEVANCE_FILTER: "true"
+          RELEVANCE_THRESHOLD: "6"
+          BETA_TEST_MODE: "true"
+        run: |
+          echo "========================================="
+          echo "테스트 모드: 5개 회사만 처리"
+          echo "수신자: sw.joo@kti.vc"
+          echo "베타 테스트 모드: 활성화"
+          echo "========================================="
+          python test.py
