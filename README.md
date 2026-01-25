@@ -58,22 +58,63 @@
 
 ## GitHub Actions 설정
 
-1. GitHub Repository의 Settings → Secrets and variables → Actions에서 다음 secrets 추가:
+### GitHub Secrets 설정 방법
 
-   **필수 환경 변수:**
-   - `SMTP_SERVER`
-   - `SMTP_PORT`
-   - `EMAIL_LOGIN`
-   - `EMAIL_PASSWORD` (앱 비밀번호 사용)
-   - `OPENAI_API_KEY`
+1. GitHub Repository 페이지로 이동
+2. **Settings** 탭 클릭
+3. 왼쪽 메뉴에서 **Secrets and variables** → **Actions** 클릭
+4. **New repository secret** 버튼 클릭
+5. 아래 환경 변수들을 하나씩 추가:
 
-   **선택 환경 변수:**
-   - `ENABLE_RELEVANCE_FILTER` (기본값: true)
-   - `RELEVANCE_THRESHOLD` (기본값: 6)
-   - `BETA_TEST_MODE` (기본값: false)
-     - 베타 테스트 기간 동안 `true`로 설정하여 필터링 품질 확인
-     - 정식 운영 시 `false`로 변경
-   - `TEST_EMAIL`: 테스트용 이메일 주소 (설정 시 모든 이메일이 이 주소로 발송)
+   **필수 환경 변수 (반드시 설정 필요):**
+   - `SMTP_SERVER`: 이메일 서버 주소 (예: `smtp.gmail.com`)
+   - `SMTP_PORT`: SMTP 포트 (예: `587`)
+   - `EMAIL_LOGIN`: 발신 이메일 주소
+   - `EMAIL_PASSWORD`: 이메일 앱 비밀번호 (Gmail의 경우 16자리 앱 비밀번호)
+   - `OPENAI_API_KEY`: OpenAI API 키 (예: `sk-...`)
+
+   **선택 환경 변수 (설정하지 않으면 기본값 사용):**
+   - `ENABLE_RELEVANCE_FILTER`: AI 필터링 활성화 여부
+     - 설정하지 않으면 기본값 `true` 사용
+     - `true`: AI 관련성 필터링 활성화
+     - `false`: AI 필터링 비활성화 (키워드 매칭만 수행)
+   
+   - `RELEVANCE_THRESHOLD`: 관련성 점수 임계값
+     - 설정하지 않으면 기본값 `6` 사용
+     - `0-10` 사이의 숫자 (권장: `6`)
+   
+   - `BETA_TEST_MODE`: 베타 테스트 모드
+     - 설정하지 않으면 기본값 `false` 사용
+     - `true`: 필터링될 뉴스도 포함하되 경고 태그 표시
+     - `false`: 임계값 미만 뉴스는 완전히 제외
+   
+   - `TEST_EMAIL`: 테스트용 이메일 주소
+     - 설정 시 모든 이메일이 이 주소로만 발송됨
+     - 실제 운영 시에는 설정하지 않음
+
+### 환경 변수 설정 예시
+
+**최소 설정 (필수만):**
+```
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+EMAIL_LOGIN=your-email@gmail.com
+EMAIL_PASSWORD=your-16-digit-app-password
+OPENAI_API_KEY=sk-...
+```
+
+**추가 설정 (AI 필터링 커스터마이징):**
+```
+ENABLE_RELEVANCE_FILTER=true
+RELEVANCE_THRESHOLD=6
+BETA_TEST_MODE=false
+```
+
+**테스트 모드:**
+```
+TEST_EMAIL=test@example.com
+BETA_TEST_MODE=true
+```
 
 ## 주의사항
 
