@@ -44,5 +44,6 @@ jobs:
           ENABLE_RELEVANCE_FILTER: ${{ secrets.ENABLE_RELEVANCE_FILTER || 'true' }}
           RELEVANCE_THRESHOLD: ${{ secrets.RELEVANCE_THRESHOLD || '6' }}
           BETA_TEST_MODE: ${{ secrets.BETA_TEST_MODE || 'false' }}
+          TEST_EMAIL: ${{ github.ref == 'refs/heads/test' && 'godjsw1@gmail.com' || secrets.TEST_EMAIL }}
         run: |
           python main.py
