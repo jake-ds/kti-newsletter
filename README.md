@@ -16,15 +16,71 @@
 - 담당자별 맞춤 뉴스 전송 (담당 포트폴리오사 뉴스가 상단에 배치)
 - GitHub Actions 기반 자동 실행
 
-## 환경 설정
+## 프로젝트 시작하기 (Fork 및 초기 설정)
 
-1. `.env.example`을 `.env`로 복사하고 실제 값으로 수정:
+> **참고**: 이 프로젝트는 GitHub Actions에서만 실행되며, 로컬 환경 설정은 필요하지 않습니다.
 
-   ```bash
-   cp .env.example .env
-   ```
+### 1. Repository Fork
 
-2. 필요한 환경변수 설정:
+1. 원본 Repository 페이지로 이동
+2. 우측 상단의 **Fork** 버튼 클릭
+3. Fork할 계정/조직 선택
+4. Repository 이름 확인 후 **Create fork** 클릭
+
+### 2. 데이터 파일 확인
+
+Fork한 Repository에 다음 파일들이 포함되어 있는지 확인:
+- `company_info.json`: 회사 정보 (키워드, 설명, 담당자)
+- `user_info.json`: 이메일 수신자 정보
+
+**데이터 파일이 없다면:**
+- 원본 Repository에서 해당 파일들을 확인하고 필요시 추가
+
+### 3. GitHub Actions 설정
+
+Fork한 Repository에서 GitHub Secrets 설정:
+
+1. **Settings** → **Secrets and variables** → **Actions**
+2. **New repository secret** 클릭
+3. 필수 Secrets 추가:
+   - `OPENAI_API_KEY`
+   - `SMTP_SERVER`
+   - `SMTP_PORT`
+   - `EMAIL_LOGIN`
+   - `EMAIL_PASSWORD`
+
+자세한 설정 방법은 아래 [GitHub Actions 설정](#github-actions-설정) 섹션 참고
+
+### 4. 워크플로우 확인 및 테스트
+
+1. **Actions** 탭으로 이동
+2. 워크플로우가 정상적으로 보이는지 확인:
+   - `Daily News Bot`: 정식 실행 워크플로우
+   - `Test News Bot (Beta)`: 테스트용 워크플로우
+3. **Test News Bot (Beta)** 워크플로우를 수동 실행하여 테스트
+   - "Run workflow" 버튼 클릭
+   - 브랜치 선택 (기본: main)
+   - "Run workflow" 실행
+4. 실행 결과 확인:
+   - 로그에서 에러가 없는지 확인
+   - 테스트 이메일이 정상적으로 발송되었는지 확인
+
+### 5. 스케줄 확인 및 수정 (선택)
+
+`daily-news.yml` 파일의 cron 스케줄 확인:
+```yaml
+schedule:
+  - cron: "0 22 * * 0-4" # UTC 22:00 = KST 07:00 (월-금)
+```
+
+필요시 스케줄을 수정할 수 있습니다:
+1. `.github/workflows/daily-news.yml` 파일 편집
+2. cron 표현식 수정
+3. 변경사항 커밋 및 푸시
+
+## 환경 변수 설명
+
+GitHub Actions에서 사용하는 환경 변수들:
 
    **기본 설정:**
    - `SMTP_SERVER`: 이메일 서버 (예: smtp.gmail.com)
@@ -122,15 +178,20 @@ BETA_TEST_MODE=true
 - 항상 앱 비밀번호를 사용하세요 (일반 비밀번호 사용 금지)
 - 민감한 정보는 반드시 GitHub Secrets를 통해 관리하세요
 
-## 설정 방법
+## 워크플로우 실행 방법
 
-1. GitHub Repository 생성 후 코드를 push합니다.
+### 자동 실행 (스케줄)
+- **실행 시간**: 매주 월-금요일 아침 7시(KST) (UTC 22:00, 전날)
+- **워크플로우**: `daily-news.yml`
+- GitHub Actions가 자동으로 실행합니다
 
-2. GitHub Actions 자동 실행
-   - 매주 월-금요일 아침 7시(KST)에 자동으로 실행됩니다 (UTC 22:00, 전날)
-   - Actions 탭에서 수동으로도 실행 가능합니다
-   - `daily-news.yml`: 정식 실행 워크플로우
-   - `test-news.yml`: 테스트용 워크플로우 (수동 실행만 가능)
+### 수동 실행
+1. GitHub Repository → **Actions** 탭
+2. 실행할 워크플로우 선택:
+   - `Daily News Bot`: 전체 회사 뉴스 수집 및 발송
+   - `Test News Bot (Beta)`: 테스트 모드 (5개 회사만)
+3. **Run workflow** 버튼 클릭
+4. 브랜치 선택 후 **Run workflow** 실행
 
 ## 데이터 파일 구조
 
@@ -172,44 +233,7 @@ python update_raw_data.py
 
 이 스크립트는 CSV 파일을 읽어서 `company_info.json`을 생성합니다.
 
-## 로컬 개발 환경 설정
-
-1. 필요한 패키지 설치:
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-2. 환경 변수 설정:
-
-   - `.env` 파일을 생성하고 다음 내용을 추가:
-
-   ```
-   OPENAI_API_KEY=your-api-key
-   SMTP_SERVER=smtp.gmail.com
-   SMTP_PORT=587
-   EMAIL_LOGIN=your-email@gmail.com
-   EMAIL_PASSWORD=your-app-password
-   ```
-
-3. 실행:
-   ```bash
-   python main.py
-   ```
-
 ## 테스트
-
-### 로컬 테스트
-
-테스트 모드로 실행하려면:
-
-```bash
-python test.py
-```
-
-테스트 모드는 소수의 회사만 테스트하고 지정된 이메일(`sw.joo@kti.vc`)로만 발송합니다.
-
-### GitHub Actions 테스트
 
 GitHub Actions에서 테스트 워크플로우를 수동으로 실행할 수 있습니다:
 - Actions 탭 → "Test News Bot (Beta)" 워크플로우 선택 → "Run workflow" 클릭
@@ -232,5 +256,68 @@ news_bot/
 ├── requirements.txt           # Python 패키지 의존성
 └── README.md                  # 프로젝트 문서
 ```
+
+## 인수인계 체크리스트
+
+새로운 담당자가 프로젝트를 인수받을 때 확인해야 할 사항:
+
+### ✅ 필수 확인 사항
+
+- [ ] Repository Fork 완료
+- [ ] GitHub Secrets 설정 완료 (5개 필수 Secrets)
+  - [ ] `OPENAI_API_KEY`
+  - [ ] `SMTP_SERVER`
+  - [ ] `SMTP_PORT`
+  - [ ] `EMAIL_LOGIN`
+  - [ ] `EMAIL_PASSWORD`
+- [ ] `company_info.json` 파일 확인 (회사 정보)
+- [ ] `user_info.json` 파일 확인 (이메일 수신자 정보)
+- [ ] GitHub Actions 테스트 워크플로우 수동 실행 성공
+- [ ] 테스트 이메일 정상 수신 확인
+
+### 📋 계정 및 API 키 확인
+
+- [ ] OpenAI API 키 발급 및 설정
+- [ ] Gmail 앱 비밀번호 생성 및 설정
+- [ ] SMTP 서버 정보 확인 (Gmail 사용 시: `smtp.gmail.com:587`)
+
+### 🔧 설정 확인
+
+- [ ] GitHub Actions 워크플로우 스케줄 확인 (`daily-news.yml`)
+- [ ] 실행 시간 확인 (월-금 7시 KST)
+- [ ] AI 필터링 설정 확인 (`ENABLE_RELEVANCE_FILTER`, `RELEVANCE_THRESHOLD`)
+- [ ] 베타 테스트 모드 설정 확인 (`BETA_TEST_MODE`)
+
+### 📧 이메일 발송 확인
+
+- [ ] 테스트 이메일 발송 성공 확인
+- [ ] 수신자 이메일 주소 확인 (`user_info.json`)
+- [ ] 이메일 형식 및 내용 확인
+
+### 🔄 데이터 업데이트 방법
+
+- [ ] `portfolio_news_data.csv` 파일 위치 확인
+- [ ] 회사 정보 추가/수정 프로세스 이해
+- [ ] `company_info.json` 직접 수정 방법 숙지
+- [ ] `user_info.json` 직접 수정 방법 숙지
+- [ ] 변경사항 커밋 및 푸시 방법 숙지
+
+### 🐛 문제 발생 시
+
+- [ ] GitHub Actions 로그 확인 방법 숙지
+  - Actions 탭 → 실패한 워크플로우 클릭 → 로그 확인
+- [ ] OpenAI API 사용량 및 비용 확인 방법 숙지
+  - OpenAI 대시보드에서 API 사용량 확인
+- [ ] 이메일 발송 실패 시 확인 사항
+  - SMTP 설정 확인
+  - 앱 비밀번호 확인
+  - 수신자 이메일 주소 확인
+
+### 📚 추가 문서
+
+- [ ] README.md 전체 내용 숙지
+- [ ] 워크플로우 파일 이해 (`.github/workflows/`)
+  - `daily-news.yml`: 정식 실행 워크플로우
+  - `test-news.yml`: 테스트 워크플로우
 
 # kti-newsletter
