@@ -27,9 +27,8 @@ if missing_vars:
 
 # Load configuration files
 news_dict = {}
-companies = load_json("company_keyword_comment.json")
+company_info = load_json("company_info.json")
 user_info = load_json("user_info.json")
-managed_company = load_json("manager_company_map.json")
 
 
 def reorder_news_dict(news_dict, user_companies):
@@ -50,7 +49,7 @@ async def main():
 
     # Step 1: 키워드로 뉴스 검색 및 중복 제거
     print("\n=== Step 1: Fetching news and removing duplicates ===")
-    for company, detail in tqdm(companies.items()):
+    for company, detail in tqdm(company_info.items()):
         await asyncio.sleep(1.5)
         articles = []
         for keyword in detail["keyword"][0].split("/"):
@@ -89,7 +88,7 @@ async def main():
         # AI 관련성 필터링 적용
         filtered_news_dict = filter_news_by_relevance(
             news_dict,
-            companies,
+            company_info,
             threshold=relevance_threshold,
             beta_mode=beta_test_mode
         )
@@ -110,7 +109,11 @@ async def main():
 
     # 유저별 뉴스 정렬 후 이메일 발송
     for user_name, user_detail in user_info.items():
-        user_companies = managed_company.get(user_name, {})
+        # company_info에서 해당 manager가 담당하는 회사 목록 추출
+        user_companies = [
+            company for company, info in company_info.items()
+            if user_name in info.get("manager", [])
+        ]
 
         # 테스트 모드일 때는 환경변수의 이메일 주소 사용
         test_email = os.environ.get("TEST_EMAIL")
@@ -129,7 +132,7 @@ async def main():
         for company, news_list in reordered_news_dict.items():
             result_dict[company] = {"news_list": [], "keyword": []}
             result_dict[company]["news_list"] = news_list
-            result_dict[company]["keyword"] = companies[company]["keyword"]
+            result_dict[company]["keyword"] = company_info[company]["keyword"]
 
         email_body = format_email_content(result_dict, user_name)
 

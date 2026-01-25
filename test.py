@@ -34,7 +34,7 @@ if missing_vars:
 
 # Load configuration files
 news_dict = {}
-companies = load_json("company_keyword_comment.json")
+company_info = load_json("company_info.json")
 
 # 테스트용 회사 선택 (5개만)
 TEST_COMPANIES = [
@@ -46,7 +46,7 @@ TEST_COMPANIES = [
 ]
 
 # 테스트 대상 회사만 필터링
-companies = {k: v for k, v in companies.items() if k in TEST_COMPANIES}
+company_info = {k: v for k, v in company_info.items() if k in TEST_COMPANIES}
 
 # 테스트 이메일 주소
 TEST_EMAIL = "sw.joo@kti.vc"
@@ -67,7 +67,7 @@ async def main():
 
     # Step 1: 키워드로 뉴스 검색 및 중복 제거
     print("\n=== Step 1: Fetching news and removing duplicates ===")
-    for company, detail in tqdm(companies.items()):
+    for company, detail in tqdm(company_info.items()):
         await asyncio.sleep(1.5)
         articles = []
         for keyword in detail["keyword"][0].split("/"):
@@ -106,7 +106,7 @@ async def main():
         # AI 관련성 필터링 적용
         filtered_news_dict = filter_news_by_relevance(
             news_dict,
-            companies,
+            company_info,
             threshold=relevance_threshold,
             beta_mode=beta_test_mode
         )
@@ -132,7 +132,7 @@ async def main():
     for company, news_list in news_dict.items():
         result_dict[company] = {"news_list": [], "keyword": []}
         result_dict[company]["news_list"] = news_list
-        result_dict[company]["keyword"] = companies[company]["keyword"]
+        result_dict[company]["keyword"] = company_info[company]["keyword"]
 
     email_body = format_email_content(result_dict, TEST_USER_NAME)
 
