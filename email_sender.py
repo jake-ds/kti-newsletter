@@ -24,23 +24,32 @@ def send_email(content, recipients):
         return
 
     try:
+        # recipients가 리스트인 경우 문자열로 변환
+        if isinstance(recipients, list):
+            recipients_str = ", ".join(recipients)
+        else:
+            recipients_str = recipients
+        
         # 메시지 생성
         msg = MIMEMultipart("alternative")
         msg["Subject"] = "KTI Portfolio Daily News"
         msg["From"] = email_login
-        msg["To"] = recipients
+        msg["To"] = recipients_str
 
         # HTML 형식의 본문 추가
         html_part = MIMEText(content, "html")
         msg.attach(html_part)
 
         # SMTP 연결 및 전송
+        # server.sendmail()은 recipients를 리스트로 받을 수 있음
+        send_to = recipients if isinstance(recipients, list) else [recipients]
+        
         with smtplib.SMTP(smtp_server, smtp_port) as server:
             server.ehlo()
             server.starttls()
             server.ehlo()
             server.login(email_login, email_password)
-            server.sendmail(email_login, recipients, msg.as_string())
+            server.sendmail(email_login, send_to, msg.as_string())
             print("Email sent successfully!")
 
     except Exception as e:
