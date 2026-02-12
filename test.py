@@ -1,23 +1,21 @@
 """
-테스트용 뉴스봇 스크립트
-- 소수의 회사만 테스트
-- sw.joo@kti.vc로만 발송
-- 베타 테스트 모드 활성화
+테스트용 뉴스봇: main.py와 동일한 흐름.
+- 검색 회사 수 제한 (TEST_MAX_COMPANIES)
+- 발신/수신: TEST_EMAIL로만 발송, TEST_USER_NAME으로 표시
+- 테스트에서는 두 번째 로직(2.5-flash 관련성 필터)은 끄고, 첫 번째 로직(임베딩 유사도 중복 제거)만 실행
 """
 
 from tqdm import tqdm
-from utils.data_loader import load_company_info_from_csv, load_filter_config
+from utils.data_loader import load_company_info_from_csv
 from utils.email_sender import format_email_content, send_email
-from utils.filter_similar_news import filter_similar_titles, filter_news_by_relevance
+from utils.filter_similar_news import filter_similar_titles
 from utils.fetch_news import make_target_url, fetch_news
 import os
 import asyncio
 from dotenv import load_dotenv
 
-# Load environment variables
 load_dotenv()
 
-# Verify environment variables are loaded
 required_env_vars = [
     "GEMINI_API_KEY",
     "SMTP_SERVER",
@@ -32,36 +30,46 @@ if missing_vars:
         f"Missing required environment variables: {', '.join(missing_vars)}"
     )
 
-# Load configuration files
+# 테스트 제한
+TEST_MAX_COMPANIES = 3  # 검색할 회사 수
+TEST_EMAIL = os.environ.get("TEST_EMAIL", "sw.joo@kti.vc")
+TEST_USER_NAME = os.environ.get("TEST_USER_NAME", "주상원")
+
+# 전체 설정 로드 후 테스트용으로 회사만 잘라서 사용
+_all_company_info = load_company_info_from_csv()
+company_list = list(_all_company_info.keys())[:TEST_MAX_COMPANIES]
+company_info = {k: _all_company_info[k] for k in company_list if k in _all_company_info}
+
+# 테스트용 user_info: 한 명만, TEST_EMAIL로
+user_info = {TEST_USER_NAME: {"email": [TEST_EMAIL]}}
+
 news_dict = {}
-company_info = load_company_info_from_csv()
 
-# 테스트용 회사 선택 (5개만)
-TEST_COMPANIES = ["뉴로메카", "리벨리온", "힐링페이퍼"]
+print("\n" + "=" * 60)
+print("TEST MODE (main.py와 동일 흐름, 회사/수신 제한)")
+print("=" * 60)
+print(f"Companies: {list(company_info.keys())}")
+print(f"Recipient: {TEST_EMAIL} ({TEST_USER_NAME})")
+print("Relevance filter (2.5-flash): OFF → 임베딩 중복 제거만 실행")
+print("=" * 60 + "\n")
 
-# 테스트 대상 회사만 필터링
-company_info = {k: v for k, v in company_info.items() if k in TEST_COMPANIES}
 
-# 테스트 이메일 주소
-TEST_EMAIL = "sw.joo@kti.vc"
-TEST_USER_NAME = "주상원"
-
-print(f"\n{'=' * 60}")
-print(f"🧪 TEST MODE")
-print(f"{'=' * 60}")
-print(f"Testing companies: {', '.join(TEST_COMPANIES)}")
-print(f"Email recipient: {TEST_EMAIL}")
-_filter_cfg = load_filter_config()
-print(f"Beta test mode: {_filter_cfg['beta_test_mode']}")
-print(f"Relevance threshold: {_filter_cfg['relevance_threshold']}")
-print(f"{'=' * 60}\n")
+def reorder_news_dict(news_dict, user_companies):
+    reordered_dict = {}
+    for company in user_companies:
+        if company in news_dict.keys():
+            reordered_dict[company] = news_dict[company]
+    for company, _ in news_dict.items():
+        if company not in reordered_dict:
+            reordered_dict[company] = news_dict[company]
+    return reordered_dict
 
 
 async def main():
     news_count = 0
 
-    # Step 1: 키워드로 뉴스 검색 및 중복 제거
-    print("\n=== Step 1: Fetching news and removing duplicates ===")
+    # Step 1: 키워드로 뉴스 검색 + 임베딩 유사도 중복 제거 (첫 번째 로직)
+    print("\n=== Step 1: Fetching news and removing duplicates (embedding) ===")
     for company, detail in tqdm(company_info.items()):
         await asyncio.sleep(1.5)
         articles = []
@@ -69,11 +77,10 @@ async def main():
             target_url = make_target_url(keyword)
             articles += await fetch_news(target_url)
             await asyncio.sleep(1.5)
-            print(f"{company} : {keyword}")
+            print(company, ":", keyword)
 
         titles = [i[0] for i in articles]
         idx_list = filter_similar_titles(titles)
-
         filtered_articles = [articles[i] for i in idx_list]
 
         if len(filtered_articles) != 0:
@@ -86,59 +93,36 @@ async def main():
 
     print(f"\nTotal news after deduplication: {news_count}")
 
-    # Step 2: AI 기반 관련성 필터링
-    filter_cfg = load_filter_config()
-    enable_relevance_filter = filter_cfg["enable_relevance_filter"]
-    beta_test_mode = filter_cfg["beta_test_mode"]
+    # Step 2: 테스트에서는 관련성 필터(2.5-flash) 끔 → 첫 번째 로직만 사용
+    print("\n=== Step 2: AI relevance filtering is DISABLED (test mode) ===")
 
-    if enable_relevance_filter:
-        print("\n=== Step 2: AI-based relevance filtering ===")
-        relevance_threshold = filter_cfg["relevance_threshold"]
-        print(f"Relevance threshold: {relevance_threshold}/10")
+    # 유저별 뉴스 정렬 후 이메일 발송 (main과 동일 구조, 테스트는 1명만)
+    for user_name, _ in user_info.items():
+        user_companies = [
+            company
+            for company, info in company_info.items()
+            if user_name in info.get("manager", [])
+        ]
+        if not user_companies:
+            user_companies = list(company_info.keys())
 
-        if beta_test_mode:
-            print(
-                "⚠️  BETA TEST MODE: Low relevance news will be included with warnings"
-            )
+        user_email = user_info.get(user_name, {}).get("email", [TEST_EMAIL])
+        if not user_email:
+            user_email = [TEST_EMAIL]
 
-        # AI 관련성 필터링 적용
-        filtered_news_dict = filter_news_by_relevance(
-            news_dict,
-            company_info,
-            threshold=relevance_threshold,
-            beta_mode=beta_test_mode,
-        )
+        reordered_news_dict = reorder_news_dict(news_dict, user_companies)
 
-        # 필터링된 결과로 업데이트
-        news_dict.clear()
-        news_dict.update(filtered_news_dict)
+        result_dict = {}
+        for company, news_list in reordered_news_dict.items():
+            result_dict[company] = {"news_list": [], "keyword": []}
+            result_dict[company]["news_list"] = news_list
+            result_dict[company]["keyword"] = company_info[company]["keyword"]
 
-        final_news_count = sum(len(articles) for articles in news_dict.values())
-        print(f"\nFinal news count after relevance filtering: {final_news_count}")
+        email_body = format_email_content(result_dict, user_name)
+        print(f"Sending test email to {user_email[0]}...")
+        send_email(email_body, user_email)
 
-        if final_news_count == 0:
-            print("No relevant news found after filtering")
-            return
-    else:
-        print("\n=== Step 2: AI relevance filtering is DISABLED ===")
-        print("Set enable_relevance_filter to true in filter_config.json to enable it")
-
-    # Step 3: 이메일 발송 (테스트 이메일로만)
-    print(f"\n=== Step 3: Sending test email to {TEST_EMAIL} ===")
-
-    result_dict = {}
-    for company, news_list in news_dict.items():
-        result_dict[company] = {"news_list": [], "keyword": []}
-        result_dict[company]["news_list"] = news_list
-        result_dict[company]["keyword"] = company_info[company]["keyword"]
-
-    email_body = format_email_content(result_dict, TEST_USER_NAME)
-
-    print(f"Sending email to {TEST_EMAIL}...")
-    send_email(email_body, TEST_EMAIL)
-
-    print(f"\n✅ Test completed successfully!")
-    print(f"📧 Email sent to: {TEST_EMAIL}")
+    print("\nTest completed. Email sent to:", TEST_EMAIL)
 
 
 if __name__ == "__main__":
