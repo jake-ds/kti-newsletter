@@ -7,8 +7,8 @@
 ### 3단계 하이브리드 필터링 파이프라인
 
 1. **키워드 검색**: Naver 뉴스에서 회사명/키워드로 뉴스 검색
-2. **중복 제거**: OpenAI Embedding으로 유사한 기사 자동 제거 (코사인 유사도 0.85)
-3. **AI 관련성 필터링**: GPT-4o-mini로 뉴스와 회사 사업의 관련성 평가 (0-10 점수)
+2. **중복 제거**: Gemini Embedding으로 유사한 기사 자동 제거 (코사인 유사도 0.85)
+3. **AI 관련성 필터링**: Gemini로 뉴스와 회사 사업의 관련성 평가 (0-10 점수)
 
 ### 특징
 
@@ -31,7 +31,7 @@
 ### 2. 데이터 파일 확인
 
 Fork한 Repository에 다음 파일들이 포함되어 있는지 확인:
-- `company_info.json`: 회사 정보 (키워드, 설명, 담당자)
+- `portfolio_news_data.csv`: 회사 정보의 단일 소스 (기업명, 회사소개, 담당자, 키워드)
 - `user_info.json`: 이메일 수신자 정보
 
 ### 3. GitHub Secrets 설정
@@ -42,7 +42,7 @@ Fork한 Repository에 다음 파일들이 포함되어 있는지 확인:
 
 #### 필수 환경 변수
 
-- `OPENAI_API_KEY`: OpenAI API 키 (예: `sk-...`)
+- `GEMINI_API_KEY`: Google Gemini API 키
 - `SMTP_SERVER`: 이메일 서버 주소 (예: `smtp.gmail.com`)
 - `SMTP_PORT`: SMTP 포트 (예: `587`)
 - `EMAIL_LOGIN`: 발신 이메일 주소
@@ -58,8 +58,8 @@ Fork한 Repository에 다음 파일들이 포함되어 있는지 확인:
 
 - `ENABLE_RELEVANCE_FILTER`: AI 필터링 활성화 여부
   - 기본값: `true`
-     - `true`: GPT-4o-mini로 뉴스 관련성 평가 후 필터링
-     - `false`: 키워드 매칭과 중복 제거만 수행
+  - `true`: Gemini로 뉴스 관련성 평가 후 필터링
+  - `false`: 키워드 매칭과 중복 제거만 수행
 
 - `RELEVANCE_THRESHOLD`: 관련성 점수 임계값
   - 기본값: `6`
@@ -155,23 +155,15 @@ Cron 표현식은 5개의 필드로 구성됩니다:
 
 ### 파일 설명
 
-- **`company_info.json`**: 포트폴리오 회사 정보
-  - 각 회사별로 `keyword`, `comment`, `manager` 필드를 포함
-  - `manager`는 배열 형태로 여러 담당자 지원
-  - 예시:
-    ```json
-    {
-      "회사명": {
-        "keyword": ["키워드1", "키워드2"],
-        "comment": "회사 사업 설명",
-        "manager": ["담당자1", "담당자2"]
-      }
-    }
-    ```
+- **`portfolio_news_data.csv`**: 포트폴리오 회사 정보의 단일 소스 (프로젝트 **최상위**에 위치)
+  - 컬럼: 기업명, 회사소개, 담당자, 키워드
+  - 담당자 여러 명: `/`로 구분 (예: `김진수/최우석`)
+  - 키워드 여러 개: ` / `로 구분 (예: `스토어링크/퍼그샵`)
+  - 런타임에 이 CSV를 읽어 회사 정보 객체를 생성해 사용합니다. 별도 JSON 파일은 사용하지 않습니다.
 
 - **`user_info.json`**: 이메일 수신자 정보
   - 각 담당자별 이메일 주소 설정
-  - `company_info.json`의 `manager` 필드와 매칭됨
+  - CSV의 담당자명과 매칭됨
   - 예시:
     ```json
     {
@@ -183,31 +175,27 @@ Cron 표현식은 5개의 필드로 구성됩니다:
 
 ### 데이터 업데이트
 
-`portfolio_news_data.csv` 파일을 업데이트한 후 다음 명령어로 JSON 파일을 재생성:
-
-```bash
-python update_raw_data.py
-```
-
-이 스크립트는 CSV 파일을 읽어서 `company_info.json`을 생성합니다.
+회사 추가/수정 시 **`portfolio_news_data.csv`**를 직접 편집한 뒤 저장하면 됩니다. JSON 파일 생성은 필요 없습니다.
 
 ## 파일 구조
 
 ```
 news_bot/
 ├── main.py                    # 메인 실행 스크립트
-├── test.py                    # 테스트 스크립트
-├── update_raw_data.py         # CSV에서 JSON 생성 스크립트
-├── data_loader.py             # JSON 파일 로더
-├── fetch_news.py              # 뉴스 수집 모듈
-├── filter_similar_news.py     # 중복 제거 및 관련성 필터링
-├── email_sender.py            # 이메일 발송 모듈
-├── company_info.json          # 회사 정보 (키워드, 설명, 담당자)
+├── test.py                    # 테스트 실행 스크립트
+├── portfolio_news_data.csv    # 회사 정보 단일 소스 (최상위, 기업명/회사소개/담당자/키워드)
 ├── user_info.json             # 사용자 이메일 정보
-├── portfolio_news_data.csv    # 원본 데이터 (CSV)
 ├── requirements.txt           # Python 패키지 의존성
+├── utils/                     # 공통 모듈
+│   ├── data_loader.py         # JSON/CSV 로더 (회사 정보는 CSV에서 로드)
+│   ├── email_sender.py        # 이메일 발송
+│   ├── fetch_news.py          # 뉴스 수집
+│   ├── filter_similar_news.py # 중복 제거 및 AI 관련성 필터링
+│   └── csv_from_company_info.py  # JSON→CSV 일회성 변환 (필요 시)
 └── README.md                  # 프로젝트 문서
 ```
+
+- **회사 정보 CSV**는 프로젝트 **최상위**에 있는 `portfolio_news_data.csv` 한 파일만 사용합니다.
 
 ## 주의사항
 
@@ -223,19 +211,19 @@ news_bot/
 
 - [ ] Repository Fork 완료
 - [ ] GitHub Secrets 설정 완료 (5개 필수 Secrets)
-  - [ ] `OPENAI_API_KEY`
+  - [ ] `GEMINI_API_KEY`
   - [ ] `SMTP_SERVER`
   - [ ] `SMTP_PORT`
   - [ ] `EMAIL_LOGIN`
   - [ ] `EMAIL_PASSWORD`
-- [ ] `company_info.json` 파일 확인 (회사 정보)
+- [ ] `portfolio_news_data.csv` 파일 확인 (회사 정보)
 - [ ] `user_info.json` 파일 확인 (이메일 수신자 정보)
 - [ ] GitHub Actions 테스트 워크플로우 수동 실행 성공
 - [ ] 테스트 이메일 정상 수신 확인
 
 ### 📋 계정 및 API 키 확인
 
-- [ ] OpenAI API 키 발급 및 설정
+- [ ] Gemini API 키 발급 및 설정
 - [ ] Gmail 앱 비밀번호 생성 및 설정
 - [ ] SMTP 서버 정보 확인 (Gmail 사용 시: `smtp.gmail.com:587`)
 
@@ -255,8 +243,7 @@ news_bot/
 ### 🔄 데이터 업데이트 방법
 
 - [ ] `portfolio_news_data.csv` 파일 위치 확인
-- [ ] 회사 정보 추가/수정 프로세스 이해
-- [ ] `company_info.json` 직접 수정 방법 숙지
+- [ ] 회사 정보 추가/수정 프로세스 이해 (CSV 직접 편집)
 - [ ] `user_info.json` 직접 수정 방법 숙지
 - [ ] 변경사항 커밋 및 푸시 방법 숙지
 
@@ -264,8 +251,8 @@ news_bot/
 
 - [ ] GitHub Actions 로그 확인 방법 숙지
   - Actions 탭 → 실패한 워크플로우 클릭 → 로그 확인
-- [ ] OpenAI API 사용량 및 비용 확인 방법 숙지
-  - OpenAI 대시보드에서 API 사용량 확인
+- [ ] Gemini API 사용량 및 비용 확인 방법 숙지
+  - Google AI Studio에서 API 사용량 확인
 - [ ] 이메일 발송 실패 시 확인 사항
   - SMTP 설정 확인
   - 앱 비밀번호 확인

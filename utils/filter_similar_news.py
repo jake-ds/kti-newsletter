@@ -1,23 +1,27 @@
 from dotenv import load_dotenv
-from openai import OpenAI
+import google.generativeai as genai
 import numpy as np
 import time
 import os
 
 # Load environment variables
 load_dotenv()
-openai_client = OpenAI()
 
-# Set OpenAI API key from environment variable
-openai_client.api_key = os.environ.get("OPENAI_API_KEY")
-if not openai_client.api_key:
-    raise EnvironmentError("OPENAI_API_KEY environment variable is not set")
+# Configure Gemini API
+gemini_api_key = os.environ.get("GEMINI_API_KEY")
+if not gemini_api_key:
+    raise EnvironmentError("GEMINI_API_KEY environment variable is not set")
+genai.configure(api_key=gemini_api_key)
+
+# Embedding model (Gemini text embedding)
+EMBEDDING_MODEL = "models/text-embedding-004"
+# Text generation model for relevance scoring
+GENERATION_MODEL_NAME = "gemini-1.5-flash"
 
 
-def get_embedding(text, model="text-embedding-ada-002"):
-    response = openai_client.embeddings.create(input=text, model=model)
-
-    return response.data[0].embedding
+def get_embedding(text, model=EMBEDDING_MODEL):
+    result = genai.embed_content(model=model, content=text)
+    return result["embedding"]
 
 
 def cosine_similarity(vec1, vec2):
@@ -55,21 +59,12 @@ def filter_similar_titles(titles, threshold=0.85):
 def check_news_relevance(news_title, news_description, business_content):
     """
     뉴스 기사가 회사 사업 내용과 얼마나 관련이 있는지 0-10 점수로 평가
-
-    Args:
-        news_title: 뉴스 제목
-        news_description: 뉴스 설명/요약
-        business_content: 회사 사업 내용
-
-    Returns:
-        int: 0-10 관련성 점수 (10이 가장 관련성 높음)
     """
     max_retries = 3
     wait_times = [2, 4, 8]  # seconds
 
-    for attempt in range(max_retries):
-        try:
-            prompt = f"""다음 뉴스 기사가 회사의 사업 내용과 얼마나 관련이 있는지 0-10 점수로 평가해주세요.
+    system_instruction = "당신은 뉴스 기사와 회사 사업의 관련성을 평가하는 전문가입니다. 0-10 사이의 숫자로만 답변하세요."
+    prompt = f"""다음 뉴스 기사가 회사의 사업 내용과 얼마나 관련이 있는지 0-10 점수로 평가해주세요.
 
 뉴스 제목: {news_title}
 뉴스 내용: {news_description}
@@ -85,19 +80,21 @@ def check_news_relevance(news_title, news_description, business_content):
 
 0-10 사이의 숫자만 답변해주세요."""
 
-            response = openai_client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": "당신은 뉴스 기사와 회사 사업의 관련성을 평가하는 전문가입니다. 0-10 사이의 숫자로만 답변하세요."},
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=10,
-                temperature=0.3
+    for attempt in range(max_retries):
+        try:
+            model = genai.GenerativeModel(
+                GENERATION_MODEL_NAME,
+                system_instruction=system_instruction,
             )
+            response = model.generate_content(
+                prompt,
+                generation_config=genai.types.GenerationConfig(
+                    max_output_tokens=10,
+                    temperature=0.3,
+                ),
+            )
+            answer = (response.text or "").strip()
 
-            answer = response.choices[0].message.content.strip()
-
-            # 숫자 추출
             try:
                 score = int(answer)
                 if 0 <= score <= 10:
@@ -110,12 +107,16 @@ def check_news_relevance(news_title, news_description, business_content):
                 return 0
 
         except Exception as e:
-            if "rate_limit" in str(e).lower() and attempt < max_retries - 1:
-                print(f"Rate limit hit, retrying in {wait_times[attempt]}s...")
-                time.sleep(wait_times[attempt])
+            if "rate_limit" in str(e).lower() or "429" in str(e):
+                if attempt < max_retries - 1:
+                    print(f"Rate limit hit, retrying in {wait_times[attempt]}s...")
+                    time.sleep(wait_times[attempt])
+                else:
+                    print(f"Error checking relevance after {max_retries} attempts: {str(e)}")
+                    return 0
             elif attempt == max_retries - 1:
                 print(f"Error checking relevance after {max_retries} attempts: {str(e)}")
-                return 0  # 에러 시 보수적으로 0점 반환
+                return 0
             else:
                 print(f"Error checking relevance: {str(e)}")
                 return 0
@@ -126,17 +127,6 @@ def check_news_relevance(news_title, news_description, business_content):
 def filter_news_by_relevance(news_data, company_info, threshold=6, beta_mode=False):
     """
     AI 기반 관련성 점수로 뉴스 필터링
-
-    Args:
-        news_data: {회사명: [(제목, 설명, 링크), ...]} 형태의 뉴스 데이터
-        company_info: {회사명: {"comment": "사업내용", ...}} 형태의 회사 정보
-        threshold: 관련성 점수 임계값 (기본값 6, 0-10 범위)
-        beta_mode: 베타 테스트 모드 (True면 필터링하지 않고 점수만 추가)
-
-    Returns:
-        filtered_news_data: 필터링된 뉴스 데이터
-        - 일반 모드: {회사명: [(제목, 설명, 링크), ...]}
-        - 베타 모드: {회사명: [(제목, 설명, 링크, 점수), ...]}
     """
     filtered_news_data = {}
     total_news = 0
@@ -156,27 +146,23 @@ def filter_news_by_relevance(news_data, company_info, threshold=6, beta_mode=Fal
             total_news += 1
             title, description, link = news_item
 
-            # AI로 관련성 점수 평가
             score = check_news_relevance(title, description, business_content)
 
             print(f"  [{company}] Score: {score}/10 - {title[:50]}...")
 
             if beta_mode:
-                # 베타 모드: 모든 뉴스를 포함하되 점수를 추가
                 filtered_news.append((title, description, link, score))
                 filtered_news_count += 1
                 if score < threshold:
                     low_relevance_count += 1
                     print(f"    → Low relevance (score {score} < threshold {threshold}) - Will be shown with warning")
             else:
-                # 일반 모드: 임계값 이상만 포함
                 if score >= threshold:
                     filtered_news.append(news_item)
                     filtered_news_count += 1
                 else:
                     print(f"    → Filtered out (score {score} < threshold {threshold})")
 
-            # Rate limiting
             time.sleep(0.5)
 
         if filtered_news:

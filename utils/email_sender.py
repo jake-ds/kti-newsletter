@@ -41,7 +41,6 @@ def send_email(content, recipients):
         msg.attach(html_part)
 
         # SMTP 연결 및 전송
-        # server.sendmail()은 recipients를 리스트로 받을 수 있음
         send_to = recipients if isinstance(recipients, list) else [recipients]
         
         with smtplib.SMTP(smtp_server, smtp_port) as server:
@@ -99,27 +98,22 @@ def format_email_content(news_data, user_name):
         email_body += "<hr>"  # 회사 구분선
 
         for news in news_detail["news_list"]:
-            # 베타 모드에서는 4개 요소 (title, description, url, score)
-            # 일반 모드에서는 3개 요소 (title, description, url)
             if len(news) == 4:
                 title, description, url, score = news
-                # 관련성 점수가 임계값 미만이면 경고 태그 추가
                 if score < relevance_threshold:
                     title_with_tag = f'<span style="background-color: #ffcccc; padding: 2px 8px; border-radius: 3px; font-size: 12px; font-weight: bold;">[관련성 낮음 - 필터링 예정 (점수: {score}/10)]</span> {title}'
                     email_body += f"<h3>{title_with_tag}</h3>"
                 else:
-                    # 관련성 높은 뉴스에는 점수 표시 (선택사항)
                     title_with_score = f'<span style="background-color: #d4edda; padding: 2px 8px; border-radius: 3px; font-size: 12px; font-weight: bold;">[관련성: {score}/10]</span> {title}'
                     email_body += f"<h3>{title_with_score}</h3>"
             else:
-                # 일반 모드 (3개 요소)
                 title, description, url = news
                 email_body += f"<h3>{title}</h3>"
 
             email_body += f"<p>{description}</p>"
             email_body += f'<a href="{url}">Link</a><br>'
-            email_body += "<hr>"  # 뉴스 항목 구분선
+            email_body += "<hr>"
 
-        email_body += "<br>"  # 각 회사의 뉴스 섹션을 구분하기 위한 줄바꿈
+        email_body += "<br>"
 
     return email_body

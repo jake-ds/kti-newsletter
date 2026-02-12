@@ -6,10 +6,10 @@
 """
 
 from tqdm import tqdm
-from data_loader import load_json
-from email_sender import format_email_content, send_email
-from filter_similar_news import filter_similar_titles, filter_news_by_relevance
-from fetch_news import make_target_url, fetch_news
+from utils.data_loader import load_json, load_company_info_from_csv
+from utils.email_sender import format_email_content, send_email
+from utils.filter_similar_news import filter_similar_titles, filter_news_by_relevance
+from utils.fetch_news import make_target_url, fetch_news
 import os
 import asyncio
 from dotenv import load_dotenv
@@ -19,7 +19,7 @@ load_dotenv()
 
 # Verify environment variables are loaded
 required_env_vars = [
-    "OPENAI_API_KEY",
+    "GEMINI_API_KEY",
     "SMTP_SERVER",
     "SMTP_PORT",
     "EMAIL_LOGIN",
@@ -34,7 +34,7 @@ if missing_vars:
 
 # Load configuration files
 news_dict = {}
-company_info = load_json("company_info.json")
+company_info = load_company_info_from_csv()
 
 # 테스트용 회사 선택 (5개만)
 TEST_COMPANIES = [
