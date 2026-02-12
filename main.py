@@ -84,14 +84,16 @@ async def main():
         print(f"Relevance threshold: {relevance_threshold}/10")
 
         if beta_test_mode:
-            print("⚠️  BETA TEST MODE: Low relevance news will be included with warnings")
+            print(
+                "⚠️  BETA TEST MODE: Low relevance news will be included with warnings"
+            )
 
         # AI 관련성 필터링 적용
         filtered_news_dict = filter_news_by_relevance(
             news_dict,
             company_info,
             threshold=relevance_threshold,
-            beta_mode=beta_test_mode
+            beta_mode=beta_test_mode,
         )
 
         # 필터링된 결과로 업데이트
@@ -109,10 +111,11 @@ async def main():
         print("Set enable_relevance_filter to true in filter_config.json to enable it")
 
     # 유저별 뉴스 정렬 후 이메일 발송
-    for user_name, user_detail in user_info.items():
+    for user_name, _ in user_info.items():
         # company_info에서 해당 manager가 담당하는 회사 목록 추출
         user_companies = [
-            company for company, info in company_info.items()
+            company
+            for company, info in company_info.items()
             if user_name in info.get("manager", [])
         ]
 

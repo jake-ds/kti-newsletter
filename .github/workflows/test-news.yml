@@ -40,9 +40,6 @@ jobs:
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           EMAIL_LOGIN: ${{ secrets.EMAIL_LOGIN }}
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-          ENABLE_RELEVANCE_FILTER: "true"
-          RELEVANCE_THRESHOLD: "6"
-          BETA_TEST_MODE: "true"
           TEST_EMAIL: "godjsw1@gmail.com"
         run: |
           echo "========================================="
