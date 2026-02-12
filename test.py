@@ -37,13 +37,7 @@ news_dict = {}
 company_info = load_company_info_from_csv()
 
 # 테스트용 회사 선택 (5개만)
-TEST_COMPANIES = [
-    "클래스101",
-    "번개장터",
-    "뉴로메카",
-    "리벨리온",
-    "힐링페이퍼"
-]
+TEST_COMPANIES = ["뉴로메카", "리벨리온", "힐링페이퍼"]
 
 # 테스트 대상 회사만 필터링
 company_info = {k: v for k, v in company_info.items() if k in TEST_COMPANIES}
@@ -52,14 +46,14 @@ company_info = {k: v for k, v in company_info.items() if k in TEST_COMPANIES}
 TEST_EMAIL = "sw.joo@kti.vc"
 TEST_USER_NAME = "주상원"
 
-print(f"\n{'='*60}")
+print(f"\n{'=' * 60}")
 print(f"🧪 TEST MODE")
-print(f"{'='*60}")
+print(f"{'=' * 60}")
 print(f"Testing companies: {', '.join(TEST_COMPANIES)}")
 print(f"Email recipient: {TEST_EMAIL}")
 print(f"Beta test mode: {os.environ.get('BETA_TEST_MODE', 'true')}")
 print(f"Relevance threshold: {os.environ.get('RELEVANCE_THRESHOLD', '6')}")
-print(f"{'='*60}\n")
+print(f"{'=' * 60}\n")
 
 
 async def main():
@@ -92,7 +86,9 @@ async def main():
     print(f"\nTotal news after deduplication: {news_count}")
 
     # Step 2: AI 기반 관련성 필터링
-    enable_relevance_filter = os.environ.get("ENABLE_RELEVANCE_FILTER", "true").lower() == "true"
+    enable_relevance_filter = (
+        os.environ.get("ENABLE_RELEVANCE_FILTER", "true").lower() == "true"
+    )
     beta_test_mode = os.environ.get("BETA_TEST_MODE", "true").lower() == "true"
 
     if enable_relevance_filter:
@@ -101,14 +97,16 @@ async def main():
         print(f"Relevance threshold: {relevance_threshold}/10")
 
         if beta_test_mode:
-            print("⚠️  BETA TEST MODE: Low relevance news will be included with warnings")
+            print(
+                "⚠️  BETA TEST MODE: Low relevance news will be included with warnings"
+            )
 
         # AI 관련성 필터링 적용
         filtered_news_dict = filter_news_by_relevance(
             news_dict,
             company_info,
             threshold=relevance_threshold,
-            beta_mode=beta_test_mode
+            beta_mode=beta_test_mode,
         )
 
         # 필터링된 결과로 업데이트
