@@ -6,7 +6,7 @@
 """
 
 from tqdm import tqdm
-from utils.data_loader import load_json, load_company_info_from_csv
+from utils.data_loader import load_company_info_from_csv
 from utils.email_sender import format_email_content, send_email
 from utils.filter_similar_news import filter_similar_titles, filter_news_by_relevance
 from utils.fetch_news import make_target_url, fetch_news

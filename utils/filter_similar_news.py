@@ -13,8 +13,8 @@ if not gemini_api_key:
     raise EnvironmentError("GEMINI_API_KEY environment variable is not set")
 genai.configure(api_key=gemini_api_key)
 
-# Embedding model (Gemini text embedding)
-EMBEDDING_MODEL = "models/text-embedding-004"
+# Embedding model (Gemini). Do not use text-embedding-004 (deprecated, returns 404).
+EMBEDDING_MODEL = "gemini-embedding-001"
 # Text generation model for relevance scoring
 GENERATION_MODEL_NAME = "gemini-1.5-flash"
 
