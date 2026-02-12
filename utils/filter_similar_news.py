@@ -19,9 +19,25 @@ EMBEDDING_MODEL = "gemini-embedding-001"
 GENERATION_MODEL_NAME = "gemini-2.5-flash"
 
 
+def _is_rate_limit_error(e):
+    s = str(e).lower()
+    return "429" in s or "rate_limit" in s or "too many" in s or "too many requests" in s
+
+
 def get_embedding(text, model=EMBEDDING_MODEL):
-    result = genai.embed_content(model=model, content=text)
-    return result["embedding"]
+    max_retries = 4
+    wait_times = [2, 5, 15, 30]
+    for attempt in range(max_retries):
+        try:
+            result = genai.embed_content(model=model, content=text)
+            return result["embedding"]
+        except Exception as e:
+            if _is_rate_limit_error(e) and attempt < max_retries - 1:
+                print(f"Rate limit (embedding), retrying in {wait_times[attempt]}s...")
+                time.sleep(wait_times[attempt])
+            else:
+                raise
+    return None  # unreachable
 
 
 def cosine_similarity(vec1, vec2):
@@ -36,7 +52,7 @@ def filter_similar_titles(titles, threshold=0.85):
         try:
             embedding = get_embedding(title)
             embeddings.append(embedding)
-            time.sleep(0.4)  # Rate limiting
+            time.sleep(1.0)  # Rate limiting: avoid 429
         except Exception as e:
             print(f"Error processing title '{title}': {str(e)}")
             continue
@@ -60,8 +76,8 @@ def check_news_relevance(news_title, news_description, business_content):
     """
     뉴스 기사가 회사 사업 내용과 얼마나 관련이 있는지 0-10 점수로 평가
     """
-    max_retries = 3
-    wait_times = [2, 4, 8]  # seconds
+    max_retries = 4
+    wait_times = [5, 15, 30, 60]  # 429 시 대기 (초)
 
     system_instruction = "당신은 뉴스 기사와 회사 사업의 관련성을 평가하는 전문가입니다. 0-10 사이의 숫자로만 답변하세요."
     prompt = f"""다음 뉴스 기사가 회사의 사업 내용과 얼마나 관련이 있는지 0-10 점수로 평가해주세요.
@@ -93,10 +109,15 @@ def check_news_relevance(news_title, news_description, business_content):
                     temperature=0.3,
                 ),
             )
-            answer = (response.text or "").strip()
+            # response.text can raise if no valid Part (e.g. finish_reason=SAFETY/blocked)
+            answer = ""
+            if response.candidates:
+                c = response.candidates[0]
+                if c.content and c.content.parts:
+                    answer = (c.content.parts[0].text or "").strip()
 
             try:
-                score = int(answer)
+                score = int(answer) if answer else 0
                 if 0 <= score <= 10:
                     return score
                 else:
@@ -107,9 +128,9 @@ def check_news_relevance(news_title, news_description, business_content):
                 return 0
 
         except Exception as e:
-            if "rate_limit" in str(e).lower() or "429" in str(e):
+            if _is_rate_limit_error(e):
                 if attempt < max_retries - 1:
-                    print(f"Rate limit hit, retrying in {wait_times[attempt]}s...")
+                    print(f"Rate limit (429), retrying in {wait_times[attempt]}s...")
                     time.sleep(wait_times[attempt])
                 else:
                     print(f"Error checking relevance after {max_retries} attempts: {str(e)}")
@@ -163,7 +184,7 @@ def filter_news_by_relevance(news_data, company_info, threshold=6, beta_mode=Fal
                 else:
                     print(f"    → Filtered out (score {score} < threshold {threshold})")
 
-            time.sleep(0.5)
+            time.sleep(1.0)  # 429 방지
 
         if filtered_news:
             filtered_news_data[company] = filtered_news
