@@ -1,25 +1,3 @@
-
-{
-    "김진수":{
-        "email": "jjins@kti.vc"
-    },
-    "이원균":{
-        "email": "wkwk.lee@kti.vc"
-    },
-    "최우석":{
-        "email": "ryan.choi@kti.vc"
-    },
-    "이은주":{
-        "email": "eju.lee@kti.vc"
-    },
-    "조영모":{
-        "email": "yungmo.cho@kti.vc"
-    },
-    "주상원":{
-        "email": "sw.joo@kti.vc"
-    }
-}
-"""
 {
     "배한철":{
         "email": "hanchul.bae@kti.vc"
@@ -49,4 +27,3 @@
         "email": "sw.joo@kti.vc"
     }
 }
-"""
