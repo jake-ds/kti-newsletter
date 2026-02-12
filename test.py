@@ -31,14 +31,15 @@ if missing_vars:
     )
 
 # 테스트 제한
-TEST_MAX_COMPANIES = 3  # 검색할 회사 수
+TEST_COMPANIES = ["뉴로메카", "리벨리온"]
 TEST_EMAIL = os.environ.get("TEST_EMAIL", "sw.joo@kti.vc")
 TEST_USER_NAME = os.environ.get("TEST_USER_NAME", "주상원")
 
-# 전체 설정 로드 후 테스트용으로 회사만 잘라서 사용
+# 테스트용 회사만 사용
 _all_company_info = load_company_info_from_csv()
-company_list = list(_all_company_info.keys())[:TEST_MAX_COMPANIES]
-company_info = {k: _all_company_info[k] for k in company_list if k in _all_company_info}
+company_info = {
+    k: _all_company_info[k] for k in TEST_COMPANIES if k in _all_company_info
+}
 
 # 테스트용 user_info: 한 명만, TEST_EMAIL로
 user_info = {TEST_USER_NAME: {"email": [TEST_EMAIL]}}

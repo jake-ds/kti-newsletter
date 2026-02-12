@@ -29,7 +29,7 @@ def send_email(content, recipients):
             recipients_str = ", ".join(recipients)
         else:
             recipients_str = recipients
-        
+
         # 메시지 생성
         msg = MIMEMultipart("alternative")
         msg["Subject"] = "KTI Portfolio Daily News"
@@ -42,7 +42,7 @@ def send_email(content, recipients):
 
         # SMTP 연결 및 전송
         send_to = recipients if isinstance(recipients, list) else [recipients]
-        
+
         with smtplib.SMTP(smtp_server, smtp_port) as server:
             server.ehlo()
             server.starttls()
@@ -60,24 +60,13 @@ def send_email(content, recipients):
 def format_email_content(news_data, user_name):
     # 베타 테스트 모드 및 임계값: filter_config.json
     from utils.data_loader import load_filter_config
+
     filter_cfg = load_filter_config()
     beta_test_mode = filter_cfg["beta_test_mode"]
     relevance_threshold = filter_cfg["relevance_threshold"]
 
     email_body = "<h1> KTI Portfolio Daily News </h1>"
     email_body += f"<p> 안녕하세요 {user_name}님. KTI 투자포트폴리오사의 뉴스리스트 메일링입니다</p><br><br>"
-
-    # 베타 테스트 모드 안내 추가
-    if beta_test_mode:
-        email_body += """
-        <div style="font-family: Arial, sans-serif; font-size: 14px; color: #856404; background-color: #fff3cd; padding: 15px; border-radius: 5px; border: 1px solid #ffeaa7; margin-bottom: 20px;">
-            <strong>⚠️ 베타 테스트 모드</strong><br>
-            현재 AI 관련성 필터링 기능을 테스트 중입니다.<br>
-            관련성이 낮은 뉴스는 <span style="background-color: #ffcccc; padding: 2px 5px; border-radius: 3px;">[관련성 낮음 - 필터링 예정]</span> 태그가 표시됩니다.<br>
-            정식 운영 시 이러한 뉴스는 자동으로 제외됩니다.<br>
-            필터링 품질에 대한 피드백을 주시면 감사하겠습니다!
-        </div>
-        """
 
     email_body += """
     <div style="font-family: Arial, sans-serif; font-size: 14px; color: #555;">
