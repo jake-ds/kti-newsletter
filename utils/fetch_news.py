@@ -34,21 +34,18 @@ async def fetch_html(url: str) -> str:
 
 
 async def fetch_news(target_url):
-    # User-Agent 목록
     html = await fetch_html(target_url)
     soup = BeautifulSoup(html, "html.parser")
 
     articles = []
     for card in soup.select("div.sds-comps-base-layout"):
-        # 제목(span 에 headline1 클래스 포함)
         title_span = card.select_one("span.sds-comps-text-type-headline1")
         if not title_span:
-            continue  # 제목 없으면 뉴스 카드로 보지 않음
+            continue
 
         title = title_span.get_text(" ", strip=True)
         link = title_span.find_parent("a")["href"]
 
-        # 내용(span 에 ellipsis-3 클래스 포함)
         content_span = card.select_one("span.sds-comps-text-ellipsis-3")
         content = content_span.get_text(" ", strip=True) if content_span else ""
         articles.append((title, content, link))

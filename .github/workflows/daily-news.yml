@@ -36,14 +36,11 @@ jobs:
 
       - name: Run news bot
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           EMAIL_LOGIN: ${{ secrets.EMAIL_LOGIN }}
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-          ENABLE_RELEVANCE_FILTER: ${{ secrets.ENABLE_RELEVANCE_FILTER || 'true' }}
-          RELEVANCE_THRESHOLD: ${{ secrets.RELEVANCE_THRESHOLD || '6' }}
-          BETA_TEST_MODE: ${{ secrets.BETA_TEST_MODE || 'false' }}
           TEST_EMAIL: ${{ github.ref == 'refs/heads/test' && 'godjsw1@gmail.com' || secrets.TEST_EMAIL }}
         run: |
           python main.py

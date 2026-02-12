@@ -8,7 +8,7 @@ beautifulsoup4 = "==4.12.2"
 jupyter = "*"
 lxml = "*"
 playwright = ">=1.40.0"
-openai = "*"
+google-generativeai = ">=0.8.0"
 
 [dev-packages]
 

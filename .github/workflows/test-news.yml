@@ -35,14 +35,11 @@ jobs:
 
       - name: Run test news bot
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           EMAIL_LOGIN: ${{ secrets.EMAIL_LOGIN }}
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-          ENABLE_RELEVANCE_FILTER: "true"
-          RELEVANCE_THRESHOLD: "6"
-          BETA_TEST_MODE: "true"
           TEST_EMAIL: "godjsw1@gmail.com"
         run: |
           echo "========================================="

@@ -1,0 +1,5 @@
+{
+  "enable_relevance_filter": false,
+  "relevance_threshold": 6,
+  "beta_test_mode": false
+}
