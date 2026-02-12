@@ -65,7 +65,7 @@ def format_email_content(news_data, user_name):
     beta_test_mode = filter_cfg["beta_test_mode"]
     relevance_threshold = filter_cfg["relevance_threshold"]
 
-    email_body = "<h1> KTI Portfolio Daily News </h1>"
+    email_body = "<h1> [Gemini Test 발송] KTI Portfolio Daily News </h1>"
     email_body += f"<p> 안녕하세요 {user_name}님. KTI 투자포트폴리오사의 뉴스리스트 메일링입니다</p><br><br>"
 
     email_body += """
