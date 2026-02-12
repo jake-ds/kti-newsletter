@@ -5,6 +5,8 @@ import os
 # 프로젝트 루트 (utils/ 기준 상위 디렉터리)
 _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+FILTER_CONFIG_PATH = os.path.join(_REPO_ROOT, "filter_config.json")
+
 
 def load_json(file_path):
     """JSON 파일 로드. 상대 경로면 프로젝트 루트 기준."""
@@ -41,3 +43,41 @@ def load_company_info_from_csv(csv_path="portfolio_news_data.csv"):
                 "manager": managers,
             }
     return company_info
+
+
+def load_filter_config():
+    """
+    filter_config.json에서 AI 관련성 필터 설정 로드.
+    파일이 없거나 키가 없으면 환경 변수로 폴백.
+    반환: {"enable_relevance_filter": bool, "relevance_threshold": int, "beta_test_mode": bool}
+    """
+    out = {
+        "enable_relevance_filter": True,
+        "relevance_threshold": 6,
+        "beta_test_mode": False,
+    }
+    if os.path.isfile(FILTER_CONFIG_PATH):
+        try:
+            with open(FILTER_CONFIG_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if "enable_relevance_filter" in data:
+                v = data["enable_relevance_filter"]
+                out["enable_relevance_filter"] = v if isinstance(v, bool) else str(v).lower() in ("true", "1")
+            if "relevance_threshold" in data:
+                out["relevance_threshold"] = int(data["relevance_threshold"])
+            if "beta_test_mode" in data:
+                v = data["beta_test_mode"]
+                out["beta_test_mode"] = v if isinstance(v, bool) else str(v).lower() in ("true", "1")
+        except (json.JSONDecodeError, TypeError, ValueError):
+            pass
+    # 환경 변수로 덮어쓰기 (선택)
+    if "ENABLE_RELEVANCE_FILTER" in os.environ:
+        out["enable_relevance_filter"] = os.environ.get("ENABLE_RELEVANCE_FILTER", "true").lower() == "true"
+    if "RELEVANCE_THRESHOLD" in os.environ:
+        try:
+            out["relevance_threshold"] = int(os.environ.get("RELEVANCE_THRESHOLD", "6"))
+        except ValueError:
+            pass
+    if "BETA_TEST_MODE" in os.environ:
+        out["beta_test_mode"] = os.environ.get("BETA_TEST_MODE", "false").lower() == "true"
+    return out

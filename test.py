@@ -6,7 +6,7 @@
 """
 
 from tqdm import tqdm
-from utils.data_loader import load_company_info_from_csv
+from utils.data_loader import load_company_info_from_csv, load_filter_config
 from utils.email_sender import format_email_content, send_email
 from utils.filter_similar_news import filter_similar_titles, filter_news_by_relevance
 from utils.fetch_news import make_target_url, fetch_news
@@ -51,8 +51,9 @@ print(f"🧪 TEST MODE")
 print(f"{'=' * 60}")
 print(f"Testing companies: {', '.join(TEST_COMPANIES)}")
 print(f"Email recipient: {TEST_EMAIL}")
-print(f"Beta test mode: {os.environ.get('BETA_TEST_MODE', 'true')}")
-print(f"Relevance threshold: {os.environ.get('RELEVANCE_THRESHOLD', '6')}")
+_filter_cfg = load_filter_config()
+print(f"Beta test mode: {_filter_cfg['beta_test_mode']}")
+print(f"Relevance threshold: {_filter_cfg['relevance_threshold']}")
 print(f"{'=' * 60}\n")
 
 
@@ -86,14 +87,13 @@ async def main():
     print(f"\nTotal news after deduplication: {news_count}")
 
     # Step 2: AI 기반 관련성 필터링
-    enable_relevance_filter = (
-        os.environ.get("ENABLE_RELEVANCE_FILTER", "true").lower() == "true"
-    )
-    beta_test_mode = os.environ.get("BETA_TEST_MODE", "true").lower() == "true"
+    filter_cfg = load_filter_config()
+    enable_relevance_filter = filter_cfg["enable_relevance_filter"]
+    beta_test_mode = filter_cfg["beta_test_mode"]
 
     if enable_relevance_filter:
         print("\n=== Step 2: AI-based relevance filtering ===")
-        relevance_threshold = int(os.environ.get("RELEVANCE_THRESHOLD", "6"))
+        relevance_threshold = filter_cfg["relevance_threshold"]
         print(f"Relevance threshold: {relevance_threshold}/10")
 
         if beta_test_mode:
@@ -121,7 +121,7 @@ async def main():
             return
     else:
         print("\n=== Step 2: AI relevance filtering is DISABLED ===")
-        print("Set ENABLE_RELEVANCE_FILTER=true to enable it")
+        print("Set enable_relevance_filter to true in filter_config.json to enable it")
 
     # Step 3: 이메일 발송 (테스트 이메일로만)
     print(f"\n=== Step 3: Sending test email to {TEST_EMAIL} ===")

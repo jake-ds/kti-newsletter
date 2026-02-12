@@ -54,27 +54,16 @@ Fork한 Repository에 다음 파일들이 포함되어 있는지 확인:
 - 앱 비밀번호 생성
 - 생성된 16자리 앱 비밀번호를 `EMAIL_PASSWORD`에 설정
 
+#### AI 관련성 필터 설정 (파일)
+
+- **`filter_config.json`** (프로젝트 루트): .env가 아닌 별도 파일로 관리
+  - `enable_relevance_filter`: **Gemini 2.5-flash 관련성 필터** 켜기/끄기 (`true` / `false`)
+  - `relevance_threshold`: 관련성 점수 임계값 `0-10` (권장 `6`)
+  - `beta_test_mode`: 베타 테스트 모드 (`true`면 필터링될 뉴스도 `[관련성 낮음 - 필터링 예정]` 태그로 포함)
+
+필요 시 환경 변수 `ENABLE_RELEVANCE_FILTER`, `RELEVANCE_THRESHOLD`, `BETA_TEST_MODE`로 위 값을 덮어쓸 수 있습니다.
+
 #### 선택 환경 변수 (기본값 사용 가능)
-
-- `ENABLE_RELEVANCE_FILTER`: AI 필터링 활성화 여부
-  - 기본값: `true`
-  - `true`: Gemini로 뉴스 관련성 평가 후 필터링
-  - `false`: 키워드 매칭과 중복 제거만 수행
-
-- `RELEVANCE_THRESHOLD`: 관련성 점수 임계값
-  - 기본값: `6`
-  - `0-10` 사이의 숫자
-  - 점수별 의미:
-     - `10`: 회사 핵심 사업 직접 관련 뉴스만
-     - `7-9`: 사업 분야 밀접 관련 뉴스
-     - `6`: 산업/시장 간접 관련 뉴스 포함 (권장)
-     - `4-5`: 넓은 범위 뉴스 포함
-     - `0-3`: 거의 모든 뉴스 포함
-
-- `BETA_TEST_MODE`: 베타 테스트 모드
-  - 기본값: `false`
-     - `true`: 필터링될 뉴스도 이메일에 포함하되 `[관련성 낮음 - 필터링 예정]` 태그 표시
-     - `false`: 임계값 미만 뉴스는 완전히 제외 (정식 운영 모드)
 
 - `TEST_EMAIL`: 테스트용 이메일 주소
   - 설정 시 모든 이메일이 이 주소로만 발송됨
@@ -185,6 +174,7 @@ news_bot/
 ├── test.py                    # 테스트 실행 스크립트
 ├── portfolio_news_data.csv    # 회사 정보 단일 소스 (최상위, 기업명/회사소개/담당자/키워드)
 ├── user_info.json             # 사용자 이메일 정보
+├── filter_config.json         # AI 관련성 필터 설정 (enable_relevance_filter, relevance_threshold, beta_test_mode)
 ├── requirements.txt           # Python 패키지 의존성
 ├── utils/                     # 공통 모듈
 │   ├── data_loader.py         # JSON/CSV 로더 (회사 정보는 CSV에서 로드)

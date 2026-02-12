@@ -58,9 +58,11 @@ def send_email(content, recipients):
 
 
 def format_email_content(news_data, user_name):
-    # 베타 테스트 모드 및 임계값 확인
-    beta_test_mode = os.environ.get("BETA_TEST_MODE", "false").lower() == "true"
-    relevance_threshold = int(os.environ.get("RELEVANCE_THRESHOLD", "6"))
+    # 베타 테스트 모드 및 임계값: filter_config.json
+    from utils.data_loader import load_filter_config
+    filter_cfg = load_filter_config()
+    beta_test_mode = filter_cfg["beta_test_mode"]
+    relevance_threshold = filter_cfg["relevance_threshold"]
 
     email_body = "<h1> KTI Portfolio Daily News </h1>"
     email_body += f"<p> 안녕하세요 {user_name}님. KTI 투자포트폴리오사의 뉴스리스트 메일링입니다</p><br><br>"

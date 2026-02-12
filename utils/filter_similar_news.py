@@ -46,7 +46,7 @@ def cosine_similarity(vec1, vec2):
     return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
 
 
-def filter_similar_titles(titles, threshold=0.85):
+def filter_similar_titles(titles, threshold=0.60):
     embeddings = []
     for title in titles:
         try:
