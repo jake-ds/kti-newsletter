@@ -41,6 +41,6 @@ jobs:
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           EMAIL_LOGIN: ${{ secrets.EMAIL_LOGIN }}
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-          TEST_EMAIL: ${{ github.ref == 'refs/heads/test' && 'godjsw1@gmail.com' || secrets.TEST_EMAIL }}
+          TEST_EMAIL: ${{ github.ref == 'refs/heads/test' && 'ryan.choi@kti.vc' || secrets.TEST_EMAIL }}
         run: |
           python main.py
