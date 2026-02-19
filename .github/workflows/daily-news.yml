@@ -1,10 +1,5 @@
 name: Daily News Bot
 
-on:
-  schedule:
-    - cron: "0 22 * * 0-4" # UTC 22:00 (전날) = KST 07:00, 일-목요일 실행 (월-금요일 새벽에 실행됨)
-  workflow_dispatch: # 수동 실행 옵션
-
 jobs:
   run-news-bot:
     runs-on: ubuntu-latest
